@@ -1,6 +1,6 @@
 import React from 'react';
 import Attendance from '../components/Attendance';
-
+import '../App.css';
 function AttendancePage() {
   return (
     <div>

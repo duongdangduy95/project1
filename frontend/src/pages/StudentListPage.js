@@ -1,6 +1,6 @@
 import React from 'react';
 import StudentList from '../components/StudentList';
-
+import '../App.css';
 function StudentListPage() {
   return (
     <div>
