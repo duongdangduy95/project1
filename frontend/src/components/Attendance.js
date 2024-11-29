@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import '../App.css';
 function Attendance() {
   const [attendance, setAttendance] = useState([]);
   const [studentId, setStudentId] = useState('');

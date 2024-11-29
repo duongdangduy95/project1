@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
+import '../App.css';
 function StudentList() {
   const [students, setStudents] = useState([]);
 
