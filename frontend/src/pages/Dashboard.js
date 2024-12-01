@@ -7,38 +7,37 @@ function Dashboard() {
   const avatarUrl = user?.avatar || '/path/to/default-avatar.jpg';  // Thay thế bằng ảnh đại diện thực tế của người dùng
 
   return (
+    
+    <div className="dashboard-layout">
+    {/* Header */}
+    <header className="dashboard-header">
+      <h1 className="header-title">Hệ Thống Điểm Danh</h1>
+    </header>
+
+    {/* Nội dung chính */}
     <div className="dashboard-container">
-      <header className="dashboard-header">
-        {/* Ảnh đại diện và tên người dùng */}
-        <div className="profile-section">
-          <img src={avatarUrl} alt="User Avatar" className="avatar" />
-          <div className="user-info">
-            <p className="username">{user?.username}</p>
-            <div className="profile-links">
-              <Link to="/profile">Profile</Link>
-              <Link to="/update-profile">Update Profile</Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="dashboard-main">
-        <h2>Chào mừng đến với bảng điều khiển của bạn!</h2>
-        <div className="dashboard-buttons">
-          <Link to="/add-student">
-            <button className="btn btn-primary">Thêm Sinh viên</button>
-          </Link>
-          <Link to="/attendance">
-            <button className="btn btn-secondary">Điểm danh Sinh viên</button>
-          </Link>
-        </div>
-      </main>
-
-      <footer className="dashboard-footer">
-        <p>&copy; 2024 - Ứng Dụng Điểm Danh</p>
-      </footer>
+     {/* Sidebar */}
+     <div className="dashboard-sidebar">
+        <img src={avatarUrl} alt="User Avatar" className="avatar" />
+        <p className="username">{user?.username}</p>
+        <ul>
+        <li><Link to="/profile">Thông tin cá nhân</Link></li>
+            <li><Link to="/class-list">Danh sách lớp</Link></li>
+            <li><Link to="/attendance">Điểm danh</Link></li>
+        </ul>
+      </div>
+      {/* Main content */}
+      <div className="dashboard-main">
+        <h1>Chào mừng bạn đến với hệ thống điểm danh</h1>
+        <p>Vui lòng chọn một chức năng từ thanh menu bên trái để bắt đầu.</p>
+      </div>
     </div>
-  );
-}
 
+    {/* Footer */}
+    <footer className="dashboard-footer">
+      <p>&copy; 2024 Hệ Thống Điểm Danh. All Rights Reserved.</p>
+    </footer>
+  </div>
+);
+};
 export default Dashboard;

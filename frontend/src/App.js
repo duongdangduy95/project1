@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard'; // import Dashboard component
 import Profile from './pages/Profile'; // Đảm bảo Profile.js có tồn tại trong src/pages/
 import UpdateProfile from './pages/UpdateProfile'; // Đảm bảo UpdateProfile.js có tồn tại trong src/pages/
 
+
 function App() {
   return (
     <Router>

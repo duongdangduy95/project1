@@ -318,3 +318,15 @@ body, html {
   background-color: #45a049;
 }
 
+/* src/App.css */
+
+.login-message {
+  font-size: 16px;
+  margin: 10px 0;
+  color: #dc3545; /* Màu đỏ cho thông báo lỗi */
+  font-weight: bold;
+}
+
+.login-message.success {
+  color: #28a745; /* Màu xanh lá cho thông báo thành công */
+}
