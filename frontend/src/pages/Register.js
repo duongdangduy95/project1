@@ -3,7 +3,6 @@ import Select from "react-select"; // Thư viện tìm kiếm và chọn
 import data from "./data.json"; // Dữ liệu tỉnh, huyện, xã
 import './Register.css';
 
-
 function Register() {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -19,6 +18,8 @@ function Register() {
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
+  const [password, setPassword] = useState("");
+  const [profileImage, setProfileImage] = useState(null);
 
   // Khởi tạo danh sách Tỉnh/Thành phố
   useEffect(() => {
@@ -77,25 +78,41 @@ function Register() {
   };
 
   // Xử lý gửi dữ liệu
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = {
-      fullName,
-      email,
-      phone,
-      dob,
-      gender,
-      address: {
-        province: selectedProvince?.label,
-        district: selectedDistrict?.label,
-        ward: selectedWard?.label,
-        village,
-      },
-    };
+    const formData = new FormData();
+    formData.append("fullName", fullName);
+    formData.append("email", email);
+    formData.append("phone", phone);
+    formData.append("dob", dob);
+    formData.append("gender", gender);
+    formData.append("address", JSON.stringify({
+      province: selectedProvince?.label,
+      district: selectedDistrict?.label,
+      ward: selectedWard?.label,
+      village,
+    }));
+    formData.append("password", password);
+    if (profileImage) {
+      formData.append("profileImage", profileImage);
+    }
 
-    console.log("Dữ liệu gửi đi:", formData);
-    alert("Đăng ký thành công!");
+    try {
+      const response = await fetch("http://localhost:3001/api/register", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert("Đăng ký thành công!");
+      } else {
+        alert("Đăng ký thất bại!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi hệ thống!");
+    }
   };
 
   // Render giao diện
@@ -113,6 +130,30 @@ function Register() {
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Nhập họ và tên"
             required
+          />
+        </div>
+
+        {/* Mật khẩu */}
+        <div className="form-group">
+          <label htmlFor="password">Mật khẩu:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Nhập mật khẩu"
+            required
+          />
+        </div>
+
+        {/* Ảnh đại diện */}
+        <div className="form-group">
+          <label htmlFor="profileImage">Ảnh đại diện:</label>
+          <input
+            type="file"
+            id="profileImage"
+            onChange={(e) => setProfileImage(e.target.files[0])}
+            accept="image/*"
           />
         </div>
 
@@ -156,19 +197,18 @@ function Register() {
 
         {/* Giới tính */}
         <div className="form-group">
-  <label>Giới tính:</label>
-  <select
-    name="gender"
-    value={gender}
-    onChange={(e) => setGender(e.target.value)}
-    required
-  >
-    <option value="">-- Chọn giới tính --</option>
-    <option value="Nam">Nam</option>
-    <option value="Nữ">Nữ</option>
-  </select>
-</div>
-
+          <label>Giới tính:</label>
+          <select
+            name="gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            required
+          >
+            <option value="">-- Chọn giới tính --</option>
+            <option value="male">Nam</option>
+            <option value="female">Nữ</option>
+          </select>
+        </div>
 
         {/* Tỉnh/Thành phố */}
         <div className="form-group">

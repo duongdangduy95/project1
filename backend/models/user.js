@@ -25,17 +25,25 @@ const User = sequelize.define('User', {
     allowNull: true,
   },
   gender: {
-    type: DataTypes.ENUM('male', 'female', 'other'),
+    type: DataTypes.ENUM('male', 'female'),
     allowNull: true,
   },
   address: {
     type: DataTypes.JSONB, // Lưu dưới dạng JSON để chứa tỉnh, huyện, xã
     allowNull: true,
   },
+  village:{
+    type: DataTypes.STRING, 
+    allowNull: true,
+  },
   profileImage: {
     type: DataTypes.STRING, // Lưu trữ đường dẫn hoặc tên file ảnh
     allowNull: true,
-  }
+  },
+  password: {
+    type: DataTypes.STRING, // Lưu trữ mật khẩu đã được mã hóa (hashed)
+    allowNull: false,
+  },
 });
 
 module.exports = User;

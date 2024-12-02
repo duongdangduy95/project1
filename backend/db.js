@@ -1,21 +1,21 @@
-const mysql = require('mysql');
-const dotenv = require('dotenv');
+const { Sequelize } = require('sequelize');
+require('dotenv').config(); // Để đọc biến môi trường từ .env
 
-dotenv.config();
-
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+// Thiết lập kết nối MySQL
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
+  dialect: 'mysql',
+  port: process.env.DB_PORT,
+  logging: false, // Tắt log SQL (bật nếu cần debug)
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('Không thể kết nối MySQL:', err.message);
-        process.exit(1);
-    }
-    console.log('Đã kết nối tới MySQL!');
-});
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Kết nối cơ sở dữ liệu thành công!');
+  })
+  .catch((error) => {
+    console.error('Không thể kết nối đến cơ sở dữ liệu:', error);
+  });
 
-module.exports = db;
+module.exports = sequelize;
