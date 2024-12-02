@@ -51,29 +51,22 @@ function AttendancePage() {
     const canvasElement = document.getElementById('canvas');
     const canvasContext = canvasElement.getContext('2d');
 
-    // Kiểm tra quyền truy cập camera
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        videoElement.srcObject = stream;
-        videoElement.play();
-        detectFace(videoElement, canvasContext);
-      })
-      .catch((error) => {
-        console.error('Không thể truy cập camera', error);
-      });
+    // // Kiểm tra quyền truy cập camera
+    // navigator.mediaDevices
+    //   .getUserMedia({ video: true })
+    //   .then((stream) => {
+    //     videoElement.srcObject = stream;
+    //     videoElement.play();
+    //     detectFace(videoElement, canvasContext);
+    //   })
+    //   .catch((error) => {
+    //     console.error('Không thể truy cập camera', error);
+    //   });
   };
 
   // Hàm nhận diện khuôn mặt (Sử dụng thư viện như face-api.js hoặc OpenCV)
-  const detectFace = (videoElement, canvasContext) => {
-    // Thực hiện nhận diện khuôn mặt ở đây (Sử dụng thư viện như face-api.js hoặc OpenCV)
-    // Ví dụ, vẽ video lên canvas để xử lý
-
-    setInterval(() => {
-      canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-      // Thêm mã nhận diện khuôn mặt tại đây (sử dụng thư viện như face-api.js)
-    }, 100);
-  };
+  // cd ..
+  
 
   if (!user) {
     return <div>Loading...</div>; // Nếu chưa có thông tin người dùng, hiển thị Loading

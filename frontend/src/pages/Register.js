@@ -81,27 +81,33 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("fullName", fullName);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("dob", dob);
-    formData.append("gender", gender);
-    formData.append("address", JSON.stringify({
-      province: selectedProvince?.label,
-      district: selectedDistrict?.label,
-      ward: selectedWard?.label,
-      village,
-    }));
-    formData.append("password", password);
+    const formData = {
+      fullname: fullName,
+      email: email,
+      phone: phone,
+      dob: dob,
+      gender: gender,
+      address: {
+        province: selectedProvince?.label,
+        district: selectedDistrict?.label,
+        ward: selectedWard?.label,
+      },
+      village: village,
+      password: password,
+    };
+
     if (profileImage) {
-      formData.append("profileImage", profileImage);
+      // Assuming you store the image URL/path or use cloud storage
+      formData.profileImage = profileImage.name; // Or handle image upload separately
     }
 
     try {
       const response = await fetch("http://localhost:3001/api/register", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -114,6 +120,7 @@ function Register() {
       alert("Lỗi hệ thống!");
     }
   };
+
 
   // Render giao diện
   return (

@@ -3,10 +3,10 @@ const bodyParser = require("body-parser");
 const mysql = require("mysql");
 const multer = require("multer");
 const bcrypt = require("bcryptjs");
-
+const cors = require('cors');
 const app = express();
 app.use(bodyParser.json());
-
+app.use(cors());
 // Kết nối MySQL
 const db = mysql.createConnection({
   host: "localhost",
@@ -32,14 +32,16 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // API đăng ký user
-app.post("/api/register", upload.single("profileImage"), async (req, res) => {
+
+app.post("/api/Register", upload.single("profileImage"), async (req, res) => {
   const {
     fullName,
     email,
     phone,
     dob,
     gender,
-    address,
+    address,  // Đảm bảo địa chỉ là một đối tượng JSON
+    village,
     password,
   } = req.body;
 
@@ -49,8 +51,8 @@ app.post("/api/register", upload.single("profileImage"), async (req, res) => {
 
     // Lưu thông tin vào MySQL
     const sql = `
-      INSERT INTO user (fullname, email, phone, dob, gender, address, password, profileImage)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO user (fullname, email, phone, dob, gender, address, village, password, profileImage)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     db.query(
       sql,
@@ -60,25 +62,22 @@ app.post("/api/register", upload.single("profileImage"), async (req, res) => {
         phone,
         dob,
         gender,
-        JSON.stringify(address),
+        JSON.stringify(address),  // Lưu địa chỉ dưới dạng JSON
         village,
         hashedPassword,
-        req.file ? req.file.filename : null,
+        req.file ? req.file.filename : null,  // Lưu tên file ảnh nếu có
       ],
       (err, result) => {
         if (err) {
-          console.error(err);
+          console.error("Lỗi khi đăng ký user:", err); // Log lỗi vào terminal
           return res.status(500).send("Lỗi khi đăng ký user");
         }
+        console.log("Đăng ký thành công với ID:", result.insertId);  // Log thành công vào terminal
         res.status(201).send("Đăng ký thành công!");
       }
     );
   } catch (err) {
+    console.error("Lỗi trong quá trình xử lý đăng ký:", err);  // Log lỗi trong catch
     res.status(500).send("Đã xảy ra lỗi!");
   }
-});
-
-// Khởi động server
-app.listen(3000, () => {
-  console.log("Server đang chạy trên cổng 3000");
 });

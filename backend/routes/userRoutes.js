@@ -1,30 +1,31 @@
 const express = require('express');
-const { getUserProfile, updateUserProfile, addStudentsFromCSV, getAllStudents, addStudent, deleteStudent, markAttendance } = require('../controllers/userController');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/profileImages/' });
-const authenticateJWT = require('../middleware/authMiddleware');  // Middleware xác thực JWT
+const bcrypt = require('bcryptjs');
+const User = require('./models/User'); // Import the Sequelize model
+const multer = require('multer'); // For handling file uploads
+const upload = multer({ dest: 'uploads/' }); // You can configure where to store images
 
 const router = express.Router();
 
-// Route lấy thông tin người dùng
-router.get('/profile', authenticateJWT, getUserProfile);
-
-// Route cập nhật thông tin người dùng
-router.put('/profile', authenticateJWT, updateUserProfile);
-
-// Route tải lên file CSV và thêm sinh viên từ CSV
-router.post('/upload-csv', authenticateJWT, upload.single('file'), addStudentsFromCSV);
-
-// Route lấy danh sách sinh viên
-router.get('/students', authenticateJWT, getAllStudents);
-
-// Route thêm sinh viên
-router.post('/students', authenticateJWT, upload.single('profileImage'), addStudent);
-
-// Route xóa sinh viên
-router.delete('/students/:id', authenticateJWT, deleteStudent);
-
-// Route điểm danh
-router.post('/attendance', authenticateJWT, markAttendance);
+// Đăng ký người dùng
+app.post("/api/register", async (req, res) => {
+    const { fullname, email, phone, dob, gender, address, village, password, profileImage } = req.body;
+  
+    // Kiểm tra dữ liệu đầu vào (ví dụ, kiểm tra trường bắt buộc, định dạng email, ...)
+    if (!fullname || !email || !phone || !dob || !gender || !address) {
+      return res.status(400).json({ message: "Các trường bắt buộc không được để trống!" });
+    }
+  
+    try {
+      // Lưu người dùng vào cơ sở dữ liệu (giả sử bạn đang dùng MySQL hoặc MongoDB)
+      const newUser = await User.create({ fullname, email, phone, dob, gender, address, village, password, profileImage });
+  
+      // Thành công, trả về thông báo thành công
+      return res.status(200).json({ message: "Đăng ký thành công!" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Đã xảy ra lỗi khi xử lý yêu cầu!" });
+    }
+  });
+  
 
 module.exports = router;
