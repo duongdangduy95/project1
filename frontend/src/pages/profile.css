@@ -1,65 +1,56 @@
-/* Tổng thể */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-}
+
+/* Main Content */
 
 /* Profile container */
 .profile-container {
-  margin-left: 270px; /* Đẩy nội dung sang phải */
-  padding: 20px;
-}
-
-.profile-details {
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .profile-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 3px;
 }
 
-.profile-avatar {
-  width: 120px;
-  height: 120px;
+.profile-header .profile-img {
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  border: 2px solid #ddd;
+  object-fit: cover;
   margin-right: 20px;
 }
 
-.profile-info p {
-  margin: 8px 0;
+.profile-info {
   font-size: 16px;
-  color: #555;
 }
 
-.profile-info p strong {
-  color: #333;
+.profile-info p {
+  margin: 5px 0;
 }
 
-/* Nút cập nhật thông tin */
+.profile-info strong {
+  font-weight: bold;
+}
+
+/* Địa chỉ */
+.address-container p {
+  margin-left: 20px;
+}
+
+/* Button cập nhật */
 .update-button {
-  display: block;
-  width: 100%;
-  max-width: 200px;
-  padding: 10px;
-  margin: 20px auto 0;
-  text-align: center;
-  background-color: #2b579a;
-  color: #ffffff;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
   border: none;
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
 .update-button:hover {
-  background-color: #1e3f73;
+  background-color: #45a049;
+  transition: 0.3s;
 }

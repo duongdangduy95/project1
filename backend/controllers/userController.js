@@ -1,5 +1,5 @@
 const User = require('../models/user');  // Model người dùng
-const Student = require('../models/student');  // Model sinh viên
+//const Student = require('../models/student');  // Model sinh viên
 const fs = require('fs');
 const csv = require('csv-parser');
 
