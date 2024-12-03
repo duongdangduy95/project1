@@ -1,67 +1,71 @@
-import React, { useState } from 'react'; // import useState from React
-import axios from 'axios'; // import axios
-import { useNavigate } from 'react-router-dom'; // import useNavigate
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../App.css';
 
 function Login() {
-  // Khai báo các state cho username, password và thông báo (message)
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState(''); // State để lưu thông báo
-
-  // Khai báo navigate từ useNavigate để điều hướng sau khi login thành công
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state for the login process
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
-    
-    // Mock dữ liệu người dùng
-    const mockUser = {
-      username: 'testuser',
-      password: '123456',
-      email: 'testuser@example.com',
-      avatar: '/path/to/default-avatar.jpg',
-    };
-  
-    // Kiểm tra thông tin đăng nhập
-    if (username === mockUser.username && password === mockUser.password) {
-      // Lưu thông tin người dùng vào localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      localStorage.setItem('token', 'mock-token');
-  
-      // Hiển thị thông báo thành công và chuyển hướng
-      setMessage('Đăng nhập thành công!');
-      setTimeout(() => navigate('/dashboard'), 1000);
-    } else {
-      // Thông báo lỗi
-      setMessage('Tên đăng nhập hoặc mật khẩu không đúng!');
-    }
+
+    // Set loading state to true when the login starts
+    setLoading(true);
+
+    // Send login request to the backend with email and password
+    axios
+      .post('http://localhost:3000/api/login', { email, password })
+      .then((response) => {
+        // Store token in localStorage after successful login
+        localStorage.setItem('token', response.data.token);
+
+        // Show success message and navigate to dashboard after a short delay
+        setMessage('Đăng nhập thành công!');
+        setTimeout(() => navigate('/dashboard'), 1000);
+      })
+      .catch((error) => {
+        // Handle errors such as incorrect login details or server errors
+        if (error.response) {
+          setMessage('Email hoặc mật khẩu không đúng!');
+        } else if (error.request) {
+          setMessage('Lỗi kết nối mạng, vui lòng thử lại!');
+        } else {
+          setMessage('Đã xảy ra lỗi, vui lòng thử lại!');
+        }
+      })
+      .finally(() => {
+        // Set loading state to false after the login process ends
+        setLoading(false);
+      });
   };
-  
+
   return (
     <div className="home-container">
-      {/* Header */}
       <header className="home-header">
         <h1>Đăng nhập vào ứng dụng</h1>
       </header>
 
-      {/* Main Content */}
       <main className="home-main">
         <div className="content-wrapper">
           <h2 className="welcome-message">Hãy nhập thông tin đăng nhập của bạn</h2>
-          {/* Hiển thị thông báo */}
+
+          {/* Display message if available */}
           {message && <p className="login-message">{message}</p>}
 
-          {/* Form đăng nhập */}
+          {/* Login form */}
           <form className="login-form" onSubmit={handleLogin}>
             <div className="form-group">
-              <label htmlFor="username">Tên đăng nhập</label>
+              <label htmlFor="email">Email</label>
               <input
-                type="text"
-                id="username"
-                placeholder="Nhập tên đăng nhập"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                id="email"
+                placeholder="Nhập email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -76,12 +80,13 @@ function Login() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary">Đăng nhập</button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            </button>
           </form>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="home-footer">
         <p>&copy; 2024 - Ứng Dụng Điểm Danh</p>
       </footer>

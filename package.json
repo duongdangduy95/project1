@@ -2,15 +2,15 @@
     "name": "attendance-app1",
     "version": "1.0.0",
     "scripts": {
-      "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
-      "build": "react-scripts build",
-      "start-backend": "cd backend && npm start",
-      "start-frontend": "cd frontend && npm start"
+        "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+        "build": "react-scripts build",
+        "start-backend": "cd backend && npm start",
+        "start-frontend": "cd frontend && npm start"
     },
     "dependencies": {
+        "jsonwebtoken": "^9.0.2"
     },
     "devDependencies": {
-      "concurrently": "^7.0.0"
+        "concurrently": "^7.0.0"
     }
-  }
-  
+}

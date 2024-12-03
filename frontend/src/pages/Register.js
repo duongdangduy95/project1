@@ -6,14 +6,14 @@ import './Register.css';
 function Register() {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
+  const [communes, setCommunes] = useState([]);
 
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [selectedWard, setSelectedWard] = useState(null);
+  const [selectedCommune, setSelectedCommune] = useState(null);
   const [village, setVillage] = useState("");
 
-  const [fullName, setFullName] = useState("");
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
@@ -25,7 +25,7 @@ function Register() {
   useEffect(() => {
     const provincesArray = Object.keys(data).map((key) => ({
       value: key,
-      label: data[key].name_with_type,
+      label: data[key].name_with_type.replace("Tỉnh", "").replace("Thành phố", "").trim(), // Loại bỏ "Tỉnh" và "Thành phố"
     }));
     setProvinces(provincesArray);
   }, []);
@@ -34,17 +34,15 @@ function Register() {
   const handleProvinceChange = (selectedOption) => {
     setSelectedProvince(selectedOption);
     setSelectedDistrict(null);
-    setSelectedWard(null);
+    setSelectedCommune(null);
     setVillage("");
 
     const selectedProvinceData = data[selectedOption.value];
     if (selectedProvinceData) {
-      const districtsArray = Object.keys(selectedProvinceData["quan-huyen"]).map(
-        (key) => ({
-          value: key,
-          label: selectedProvinceData["quan-huyen"][key].name_with_type,
-        })
-      );
+      const districtsArray = Object.keys(selectedProvinceData["quan-huyen"]).map((key) => ({
+        value: key,
+        label: selectedProvinceData["quan-huyen"][key].name_with_type.replace("Huyện", "").replace("Quận", "").trim(), // Loại bỏ "Huyện" và "Quận"
+      }));
       setDistricts(districtsArray);
     } else {
       setDistricts([]);
@@ -54,60 +52,46 @@ function Register() {
   // Xử lý thay đổi Quận/Huyện
   const handleDistrictChange = (selectedOption) => {
     setSelectedDistrict(selectedOption);
-    setSelectedWard(null);
+    setSelectedCommune(null);
     setVillage("");
 
-    const selectedDistrictData =
-      data[selectedProvince.value]["quan-huyen"][selectedOption.value];
+    const selectedDistrictData = data[selectedProvince.value]["quan-huyen"][selectedOption.value];
     if (selectedDistrictData) {
-      const wardsArray = Object.keys(selectedDistrictData["xa-phuong"]).map(
-        (key) => ({
-          value: key,
-          label: selectedDistrictData["xa-phuong"][key].name_with_type,
-        })
-      );
-      setWards(wardsArray);
+      const communesArray = Object.keys(selectedDistrictData["xa-phuong"]).map((key) => ({
+        value: key,
+        label: selectedDistrictData["xa-phuong"][key].name_with_type.replace("Xã", "").replace("Phường", "").trim(), // Loại bỏ "Xã" và "Phường"
+      }));
+      setCommunes(communesArray);
     } else {
-      setWards([]);
+      setCommunes([]);
     }
   };
 
-  // Xử lý thay đổi Phường/Xã
-  const handleWardChange = (selectedOption) => {
-    setSelectedWard(selectedOption);
+  // Xử lý thay đổi Phường/Xã (Commune)
+  const handleCommuneChange = (selectedOption) => {
+    setSelectedCommune(selectedOption);
   };
 
-  // Xử lý gửi dữ liệu
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = {
-      fullname: fullName,
-      email: email,
-      phone: phone,
-      dob: dob,
-      gender: gender,
-      address: {
-        province: selectedProvince?.label,
-        district: selectedDistrict?.label,
-        ward: selectedWard?.label,
-      },
-      village: village,
-      password: password,
-    };
-
-    if (profileImage) {
-      // Assuming you store the image URL/path or use cloud storage
-      formData.profileImage = profileImage.name; // Or handle image upload separately
-    }
+    const formData = new FormData();
+    formData.append("fullname", fullname);
+    formData.append("email", email);
+    formData.append("phone", phone);
+    formData.append("dob", dob);
+    formData.append("gender", gender);
+    formData.append("province", selectedProvince ? selectedProvince.label : "");
+    formData.append("district", selectedDistrict ? selectedDistrict.label : "");
+    formData.append("commune", selectedCommune ? selectedCommune.label : "");
+    formData.append("village", village);
+    formData.append("password", password);
+    if (profileImage) formData.append("profileImage", profileImage);
 
     try {
-      const response = await fetch("http://localhost:3001/api/register", {
+      const response = await fetch("http://localhost:3000/api/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
       if (response.ok) {
@@ -121,7 +105,6 @@ function Register() {
     }
   };
 
-
   // Render giao diện
   return (
     <div className="register-container">
@@ -129,12 +112,12 @@ function Register() {
       <form onSubmit={handleSubmit} className="register-form">
         {/* Họ và Tên */}
         <div className="form-group">
-          <label htmlFor="fullName">Họ và tên:</label>
+          <label htmlFor="fullname">Họ và tên:</label>
           <input
             type="text"
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            id="fullname"
+            value={fullname}
+            onChange={(e) => setFullname(e.target.value)}
             placeholder="Nhập họ và tên"
             required
           />
@@ -244,12 +227,12 @@ function Register() {
 
         {/* Phường/Xã */}
         <div className="form-group">
-          <label htmlFor="ward">Phường/Xã:</label>
+          <label htmlFor="commune">Phường/Xã:</label>
           <Select
-            id="ward"
-            options={wards}
-            value={selectedWard}
-            onChange={handleWardChange}
+            id="commune"
+            options={communes}
+            value={selectedCommune}
+            onChange={handleCommuneChange}
             placeholder="Chọn Phường/Xã"
             isDisabled={!selectedDistrict}
           />
@@ -259,18 +242,18 @@ function Register() {
         <div className="form-group">
           <label htmlFor="village">Thôn/xóm:</label>
           <input
-            id="village"
             type="text"
+            id="village"
             value={village}
             onChange={(e) => setVillage(e.target.value)}
             placeholder="Nhập thôn/xóm"
           />
         </div>
 
-        {/* Submit */}
-        <button type="submit" className="btn-submit">
-          Đăng Ký
-        </button>
+        {/* Nút đăng ký */}
+        <div className="form-group">
+          <button type="submit" className="btn-submit">Đăng ký</button>
+        </div>
       </form>
     </div>
   );

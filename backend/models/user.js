@@ -1,6 +1,6 @@
-const { DataTypes } = require('sequelize');
+const {  Sequelize,DataTypes } = require('sequelize');
 const sequelize = require('../db'); // Đảm bảo bạn đã có kết nối MySQL
-
+//const sequelize = new Sequelize('mysql://user:password@localhost:3306/database');
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
@@ -28,10 +28,19 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('male', 'female'),
     allowNull: true,
   },
-  address: {
-    type: DataTypes.JSONB, // Lưu dưới dạng JSON để chứa tỉnh, huyện, xã
-    allowNull: true,
+  province: {
+    type: DataTypes.STRING, // Trường tỉnh
+    allowNull: false,
   },
+  district: {
+    type: DataTypes.STRING, // Trường huyện
+    allowNull: false,
+  },
+  commune: {
+    type: DataTypes.STRING, // Trường xã
+    allowNull: false,
+  },
+
   village:{
     type: DataTypes.STRING, 
     allowNull: true,
