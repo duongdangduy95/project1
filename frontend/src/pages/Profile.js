@@ -32,7 +32,12 @@ function Profile() {
   const avatarUrl = user?.avatarPath
     ? user.avatarPath
     : 'https://via.placeholder.com/100';
-
+  const formatDateOfBirth = (dob) => {
+      if (!dob) return '';
+      const date = new Date(dob);
+      const options = { month: '2-digit', day: '2-digit',year: 'numeric' };
+      return date.toLocaleDateString('en-GB', options);// 'en-GB' gives dd/mm format
+    };
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -63,7 +68,7 @@ function Profile() {
                 <p><strong>Tên người dùng:</strong> {user?.fullname}</p>
                 <p><strong>Email:</strong> {user?.email}</p>
                 <p><strong>Số điện thoại:</strong> {user?.phone}</p>
-                <p><strong>Ngày sinh:</strong> {user?.dob}</p>
+                <p><strong>Ngày sinh:</strong> {formatDateOfBirth(user?.dob)}</p>
                 <p><strong>Giới tính:</strong> {user?.gender}</p>
                 <p><strong>Địa chỉ:</strong></p>
                 <div className="address-container">
