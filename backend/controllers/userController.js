@@ -6,9 +6,9 @@ const csv = require('csv-parser');
 exports.registerUser = async (req, res) => {
   const { id,fullname, email, phone, dob, gender, province, district, commune, password, village ,profileImage} = req.body;
   try {
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log('Mật khẩu mã hóa');
-    // console.log(hashedPassword);
+     const hashedPassword = await bcrypt.hash(password, 10);
+     console.log('Mật khẩu mã hóa');
+     console.log(hashedPassword);
 
     // Tạo người dùng mới
     const user = await User.create({

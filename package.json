@@ -8,6 +8,7 @@
         "start-frontend": "cd frontend && npm start"
     },
     "dependencies": {
+        "dotenv": "^16.4.7",
         "jsonwebtoken": "^9.0.2"
     },
     "devDependencies": {

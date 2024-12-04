@@ -12,17 +12,24 @@ function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-
+  
     // Set loading state to true when the login starts
     setLoading(true);
-
+  
+    // Ensure email and password are not empty
+    if (!email || !password) {
+      setMessage('Email và mật khẩu không được để trống!');
+      setLoading(false);
+      return;
+    }
+  
     // Send login request to the backend with email and password
     axios
       .post('http://localhost:3000/api/login', { email, password })
       .then((response) => {
         // Store token in localStorage after successful login
         localStorage.setItem('token', response.data.token);
-
+  
         // Show success message and navigate to dashboard after a short delay
         setMessage('Đăng nhập thành công!');
         setTimeout(() => navigate('/dashboard'), 1000);
@@ -30,7 +37,7 @@ function Login() {
       .catch((error) => {
         // Handle errors such as incorrect login details or server errors
         if (error.response) {
-          setMessage('Email hoặc mật khẩu không đúng!');
+          setMessage(error.response.data.message || 'Email hoặc mật khẩu không đúng!');
         } else if (error.request) {
           setMessage('Lỗi kết nối mạng, vui lòng thử lại!');
         } else {
@@ -42,7 +49,7 @@ function Login() {
         setLoading(false);
       });
   };
-
+  
   return (
     <div className="home-container">
       <header className="home-header">
