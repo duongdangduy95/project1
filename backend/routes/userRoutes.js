@@ -9,20 +9,16 @@ const fs = require("fs");
 const db = require("../db");
 
 const router = express.Router();
-
+const authenticateToken = require('../middlewares/authMiddleware'); 
+const { updateUserProfile } = require('../controllers/userController');
 // Cấu hình Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "..", "uploads", "profileImages");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
+    cb(null, './uploads'); // Thư mục lưu trữ
   },
   filename: (req, file, cb) => {
-    const fileExtension = path.extname(file.originalname);
-    cb(null, Date.now() + fileExtension);
-  },
+    cb(null, `${Date.now()}-${file.originalname}`); // Tạo tên file duy nhất
+  }
 });
 const upload = multer({
   storage,
@@ -36,7 +32,7 @@ const upload = multer({
 });
 
 // Đăng ký
-router.post("/register", upload.single("profileImage"), async (req, res) => {
+router.post("/register", async (req, res) => {
   const { fullname, email, phone, dob, gender, village, province, district, commune, password } = req.body;
 
   if (!fullname || !email || !phone || !province || !district || !commune || !password) {
@@ -116,5 +112,65 @@ router.get("/api/user/profile", async (req, res) => {
     res.status(500).json({ message: "Lỗi xác thực token!" });
   }
 });
+// Cập nhật thông tin người dùng
+router.put('/update', authenticateToken, upload.single("profileImage"), async (req, res) => {
+  const { fullname, email, phone, dob, gender, village, province, district, commune } = req.body;
+  const userId = req.user.id;  // Get user ID from the decoded token (authMiddleware)
+
+  if (!fullname || !email || !phone || !province || !district || !commune ) {
+    return res.status(400).json({ message: "Các trường bắt buộc không được để trống!" });
+  }
+
+  try {
+    // Kiểm tra xem người dùng có ảnh đại diện cũ hay không trong cơ sở dữ liệu
+    const userQuery = `SELECT profileImage FROM user WHERE id = ?`;
+    db.query(userQuery, [userId], (err, result) => {
+      if (err) {
+        console.error("Error fetching user data:", err);
+        return res.status(500).json({ message: "Lỗi server!" });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const oldProfileImage = result[0].profileImage;
+
+      // Nếu có ảnh cũ, xóa ảnh cũ trong thư mục
+      if (oldProfileImage) {
+        const oldImagePath = path.join(__dirname, 'uploads', oldProfileImage);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath); // Xóa ảnh cũ
+        }
+      }
+
+      // Nếu có ảnh mới, lấy đường dẫn của ảnh mới
+      const profileImage = req.file ? path.join("uploads", req.file.filename) : oldProfileImage;
+      console.log("Updated profile image path:", profileImage);
+      // Cập nhật thông tin người dùng trong cơ sở dữ liệu
+      const sqlUpdate = `
+        UPDATE user 
+        SET fullname = ?, email = ?, phone = ?, dob = ?, gender = ?, village = ?, province = ?, district = ?, commune = ?, profileImage = ?
+        WHERE id = ?
+      `;
+
+      db.query(sqlUpdate, [fullname, email, phone, dob, gender, village, province, district, commune, profileImage, userId], (err, result) => {
+        if (err) {
+          console.error("Error updating user:", err);
+          return res.status(500).json({ message: "Lỗi server!" });
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "Thông tin đã được cập nhật thành công!" });
+      });
+    });
+  } catch (error) {
+    console.error("Error processing update:", error);
+    return res.status(500).json({ message: "Cập nhật thất bại", error: error.message });
+  }
+});
+
 
 module.exports = router;

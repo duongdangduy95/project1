@@ -17,12 +17,12 @@ function UpdateProfile() {
   const [selectedCommune, setSelectedCommune] = useState(null);
   const [village, setVillage] = useState("");
 
-  const [fullName, setFullName] = useState("");
+  const [fullname, setFullname] = useState("");  
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
-  const [avatar, setAvatar] = useState(""); // State for avatar image
+  const [profileImage, setProfileImage] = useState(""); 
 
   useEffect(() => {
     const provincesArray = Object.keys(data).map((key) => ({
@@ -34,12 +34,13 @@ function UpdateProfile() {
     // Load user data from localStorage (if available)
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
-      setFullName(user.fullName || "");
+      setFullname(user.fullname || ""); 
       setEmail(user.email || "");
       setPhone(user.phone || "");
       setDob(user.dob || "");
       setGender(user.gender || "");
-      setAvatar(user.avatar || ""); // Set avatar from user data
+      setVillage(user.village||"");
+      setProfileImage(user.profileImage ? `http://localhost:3000${user.profileImage}?timestamp=${new Date().getTime()}` : "");
 
       // Set address information (Province, District, Commune)
       const province = provincesArray.find(p => p.label === user.address?.province);
@@ -104,61 +105,63 @@ function UpdateProfile() {
     setSelectedCommune(selectedOption);
   };
 
-  const handleAvatarChange = (e) => {
+  const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result);
-      };
-      reader.readAsDataURL(file);
+      setProfileImage(file); // Lưu tệp ảnh vào state
+    }
+  };
+
+  // Define the updateProfile function here
+  const updateProfile = async (formData) => {
+    try {
+      const token = localStorage.getItem('token'); 
+      const response = await axios.put('http://localhost:3000/api/user/update', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Cập nhật thành công:', response.data);
+      // Cập nhật lại thông tin người dùng trong localStorage
+      localStorage.setItem('user', JSON.stringify(formData));
+    } catch (error) {
+      console.error('Cập nhật thất bại:', error.response?.data || error.message);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = {
-      fullName,
-      email,
-      phone,
-      dob,
-      gender,
-      avatar,
-      address: {
-        province: selectedProvince?.label,
-        district: selectedDistrict?.label,
-        commune: selectedCommune?.label,
-        village,
-      },
-    };
-
+    const formData = new FormData();
+    formData.append('fullname', fullname);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('dob', dob);
+    formData.append('gender', gender);
+    if (profileImage) {
+      formData.append('profileImage', profileImage); // Gửi ảnh mới lên server
+    }
+    formData.append('province', selectedProvince?.label);
+    formData.append('district', selectedDistrict?.label);
+    formData.append('commune', selectedCommune?.label);
+     formData.append('village',village);
     try {
-      // Lấy token từ localStorage
       const token = localStorage.getItem('token');
+      const response = await axios.put('http://localhost:3000/api/user/update', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Cập nhật thành công:', response.data);
 
-      // Gửi yêu cầu cập nhật thông tin người dùng lên server
-      const response = await axios.put(
-        'http://your-backend-api.com/updateUser', // URL API của bạn
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("Dữ liệu gửi đi:", formData);
-      alert("Cập nhật thành công!");
-
-      // Cập nhật lại thông tin người dùng trong localStorage
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Chuyển hướng về trang profile sau khi cập nhật thành công
-      navigate("/profile");
+      const updatedUser = response.data.user;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setProfileImage(`http://localhost:3000/uploads/${updatedUser.profileImage}?timestamp=${new Date().getTime()}`); // Cập nhật URL ảnh
+      navigate('/profile');
     } catch (error) {
-      console.error("Cập nhật thất bại:", error);
-      alert("Cập nhật thất bại, vui lòng thử lại.");
+      console.error('Cập nhật thất bại:', error.response?.data || error.message);
     }
   };
 
@@ -167,24 +170,24 @@ function UpdateProfile() {
       <h1>Cập nhật thông tin cá nhân</h1>
       <form onSubmit={handleSubmit} className="update-profile-form">
         <div className="form-group">
-          <label htmlFor="avatar">Ảnh đại diện:</label>
+          <label htmlFor="profileImage">Ảnh đại diện:</label> 
           <input
             type="file"
-            id="avatar"
-            onChange={handleAvatarChange}
+            id="profileImage" 
+            onChange={handleProfileImageChange} 
             accept="image/*"
             className="form-control"
           />
-          {avatar && <img src={avatar} alt="Avatar Preview" className="avatar-preview" />}
+          {profileImage && <img src={profileImage} alt="Avatar Preview" className="avatar-preview" />}
         </div>
 
         <div className="form-group">
-          <label htmlFor="fullName">Họ và tên:</label>
+          <label htmlFor="fullname">Họ và tên:</label> 
           <input
             type="text"
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            id="fullname" 
+            value={fullname} 
+            onChange={(e) => setFullname(e.target.value)} 
             placeholder="Nhập họ và tên"
             required
           />
@@ -231,7 +234,6 @@ function UpdateProfile() {
             value={gender}
             onChange={(e) => setGender(e.target.value)}
           >
-            <option value="">Chọn giới tính</option>
             <option value="male">Nam</option>
             <option value="female">Nữ</option>
             <option value="other">Khác</option>
@@ -245,7 +247,6 @@ function UpdateProfile() {
             value={selectedProvince}
             onChange={handleProvinceChange}
             options={provinces}
-            placeholder="Chọn Tỉnh/Thành phố"
           />
         </div>
 
@@ -256,23 +257,18 @@ function UpdateProfile() {
             value={selectedDistrict}
             onChange={handleDistrictChange}
             options={districts}
-            placeholder="Chọn Quận/Huyện"
-            isDisabled={!selectedProvince}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="commune">Phường/Xã:</label>
+          <label htmlFor="commune">Xã/Phường:</label>
           <Select
             id="commune"
             value={selectedCommune}
             onChange={handleCommuneChange}
             options={communes}
-            placeholder="Chọn Phường/Xã"
-            isDisabled={!selectedDistrict}
           />
         </div>
-
         <div className="form-group">
           <label htmlFor="village">Thôn/Xóm:</label>
           <input
@@ -283,8 +279,9 @@ function UpdateProfile() {
             placeholder="Nhập thôn/xóm"
           />
         </div>
-
-        <button type="submit">Cập nhật thông tin</button>
+        <div className="form-group">
+          <button type="submit" className="update-profile-btn">Cập nhật thông tin</button>
+        </div>
       </form>
     </div>
   );

@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-
+//const multer = require('multer');
 const authRouter = require('./routes/userRoutes'); // Ensure this path is correct
 
 const app = express();
@@ -17,12 +17,18 @@ const app = express();
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
-
+// Increase the limit for incoming requests
+app.use(bodyParser.json({ limit: '50mb' })); // Adjust limit as needed
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({ origin: "http://localhost:3001", credentials: true }));
 app.use("/uploads", express.static("uploads"));
-
+const saveBase64Image = (base64Data, filePath) => {
+  const base64String = base64Data.replace(/^data:image\/jpeg;base64,/, ''); // Loại bỏ phần tiền tố
+  const buffer = Buffer.from(base64String, 'base64');
+  fs.writeFileSync(filePath, buffer);
+};
 const db = mysql.createConnection({
   host: "localhost", // Đúng tên host
   user: "root",      // Đúng user
@@ -38,12 +44,24 @@ db.connect((err) => {
   console.log("Đã kết nối MySQL");
 });
 
-// Multer Setup
+// Define the storage for profile images
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
+  destination: function (req, file, cb) {
+    cb(null, 'uploads'); // Directory to store the uploaded images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Filename with timestamp
+  }
 });
-const upload = multer({ storage });
+// Filter for allowed image types (optional)
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Only jpeg, jpg, and png are allowed'), false);
+  }
+  cb(null, true);
+};
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 // Sample middleware to verify token
 const authenticateMiddleware = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
@@ -145,11 +163,98 @@ app.get('/api/user/profile', authenticateMiddleware, (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// Add the middleware for uploading files
+app.put('/api/user/update', authenticateMiddleware, upload.single('profileImage'), async (req, res) => {
+  try {
+    const { fullname, phone, province, district, commune, village, gender, dob, email } = req.body;
+    const userId = req.user.id; // Get user ID from token
+    
+    // Check if the user exists in the database
+    const sqlCheck = "SELECT * FROM user WHERE id = ?";
+    db.query(sqlCheck, [userId], (err, result) => {
+      if (err) return res.status(500).json({ message: "Lỗi server!" });
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Người dùng không tồn tại" });
+      }
+
+      const user = result[0]; // Get the user from the result
+
+      // Update user data with the new fields, keeping the existing ones if not provided
+      const updatedFullname = fullname || user.fullname;
+      const updatedPhone = phone || user.phone;
+      const updatedProvince = province || user.province;
+      const updatedDistrict = district || user.district;
+      const updatedCommune = commune || user.commune;
+      const updatedVillage = village || user.village;
+      const updatedGender = gender || user.gender;
+      const updatedDob = dob || user.dob;
+      const updatedEmail = email || user.email;
+      let updatedProfileImage = user.profileImage; // Retain the old image if no new image is provided
+
+      // If a new image is uploaded, delete the old image before saving the new one
+      if (req.file) {
+        const oldImagePath = path.join(__dirname, 'uploads', user.profileImage); // Path to the old image
+
+        // Delete old image if it exists and is valid
+        if (user.profileImage && fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath); // Delete old image
+          console.log(`Deleted old profile image: ${oldImagePath}`);
+        }
+
+        updatedProfileImage = `uploads/${req.file.filename}`; // Update the image path
+      }
+
+      // SQL query to update user information
+      const sqlUpdate = `
+        UPDATE user
+        SET fullname = ?, phone = ?, province = ?, district = ?, commune = ?, village = ?, gender = ?, dob = ?, email = ?, profileImage = ?
+        WHERE id = ?
+      `;
+
+      // Log the update data
+      // console.log('Updating user with:', {
+      //   updatedFullname,
+      //   updatedPhone,
+      //   updatedProvince,
+      //   updatedDistrict,
+      //   updatedCommune,
+      //   updatedVillage,
+      //   updatedGender,
+      //   updatedDob,
+      //   updatedEmail,
+      //   updatedProfileImage,
+      // });
+      console.log('Old image path:', user.profileImage);
+console.log('New image path:', updatedProfileImage);
+
+      // Execute the update SQL query
+      db.query(sqlUpdate, [updatedFullname, updatedPhone, updatedProvince, updatedDistrict, updatedCommune, updatedVillage, updatedGender, updatedDob, updatedEmail, updatedProfileImage, userId], (err, result) => {
+        if (err) {
+          console.error('Error updating user profile:', err);
+          return res.status(500).json({ message: 'Lỗi khi cập nhật thông tin', error: err });
+        }
+        res.status(200).json({
+          message: 'Cập nhật thông tin thành công',
+          user: {
+            id: userId,
+            fullname: updatedFullname,
+            email: updatedEmail,
+            profileImage: `http://localhost:3000/${updatedProfileImage}` // Return the full URL for the profile image
+          }
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Lỗi khi cập nhật thông tin', error });
+  }
+});
 
 
+app.use('/api/user', authRouter);
 
 // Use the userRoutes for authentication and authorization handling
-app.use('/api/auth', authRouter);
+//app.use('/api/auth', authRouter);
 //app.use("/user", authenticateMiddleware, userRouter);
 
 // Start Server

@@ -18,7 +18,7 @@ function Dashboard() {
     <div className="dashboard-container">
      {/* Sidebar */}
      <div className="dashboard-sidebar">
-        <img src={avatarUrl} alt="User Avatar" className="avatar" />
+     <img src={avatarUrl} alt="User Avatar" className="avatar" />
         <p className="username">{user?.fullname}</p>
         <ul>
         <li><Link to="/profile">Thông tin cá nhân</Link></li>

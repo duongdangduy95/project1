@@ -49,7 +49,7 @@ function Profile() {
       </header>
 
       <div className="dashboard-sidebar">
-        <img src={avatarUrl} alt="User Avatar" className="avatar" />
+      <img src={`http://localhost:3000/${user.profileImage}`} alt="Profile" className="profile-img" />
         <p className="username">{user?.fullname}</p>
         <ul>
           <li><a href="/profile">Thông tin cá nhân</a></li>
@@ -79,7 +79,7 @@ function Profile() {
                 </div>
               </div>
             </div>
-            <a href="/update-profile">
+            <a href="/profile/update">
               <button className="update-button">Cập nhật thông tin</button>
             </a>
           </div>

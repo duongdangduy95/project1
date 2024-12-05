@@ -55,9 +55,9 @@ exports.getUserProfile = async (req, res) => {
 // Cập nhật thông tin người dùng
 exports.updateUserProfile = async (req, res) => {
   try {
-    const { fullname, phone, province, district, commune, gender, dob } = req.body;
-    const user = await User.findByPk(req.user.id);
+    const { fullname, phone, province, district, commune,village, gender, dob, email, profileImage } = req.body;
 
+    const user = await User.findByPk(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'Người dùng không tồn tại' });
     }
@@ -68,13 +68,16 @@ exports.updateUserProfile = async (req, res) => {
     user.province = province || user.province;
     user.district = district || user.district;
     user.commune = commune || user.commune;
+    user.village=village|| user.village;
     user.gender = gender || user.gender;
     user.dob = dob || user.dob;
-    user.email=email || user.email;
+    user.email = email || user.email;
+    user.profileImage = profileImage || user.profileImage;
 
     await user.save();
     res.status(200).json({ message: 'Cập nhật thông tin thành công', user });
   } catch (error) {
+    console.error('Error updating user profile:', error);
     res.status(500).json({ message: 'Lỗi khi cập nhật thông tin', error });
   }
 };
