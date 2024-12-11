@@ -21,6 +21,16 @@
   object-fit: cover;
   margin-right: 20px;
 }
+.sidebar-profile-img {
+  width: 100px; /* Chiều rộng ảnh */
+  height: 100px; /* Chiều cao ảnh */
+  max-width: 100px; /* Giới hạn chiều rộng tối đa */
+  max-height: 100px; /* Giới hạn chiều cao tối đa */
+  border-radius: 50%; /* Tạo ảnh tròn, bỏ nếu muốn giữ ảnh gốc */
+  object-fit: cover; /* Đảm bảo ảnh không bị méo */
+  margin: 10px auto; /* Canh giữa ảnh trong sidebar */
+  display: block;
+}
 
 .profile-info {
   font-size: 16px;

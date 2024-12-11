@@ -53,7 +53,7 @@ function Profile() {
         <p className="username">{user?.fullname}</p>
         <ul>
           <li><a href="/profile">Thông tin cá nhân</a></li>
-          <li><a href="/class-list">Danh sách lớp</a></li>
+          <li><a href="/student-list">Danh sách sinh viên</a></li>
           <li><a href="/attendance">Điểm danh</a></li>
         </ul>
       </div>

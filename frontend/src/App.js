@@ -13,6 +13,9 @@ import StudentListPage from './pages/StudentListPage';
 import Dashboard from './pages/Dashboard'; // import Dashboard component
 import Profile from './pages/Profile'; // Đảm bảo Profile.js có tồn tại trong src/pages/
 import UpdateProfile from './pages/UpdateProfile'; // Đảm bảo UpdateProfile.js có tồn tại trong src/pages/
+import AddStudentPage from './pages/AddStudentPage'; // Đảm bảo AddStudentPage.js có tồn tại trong src/pages/
+import AddStudentByFile from './pages/AddStudentByFile';
+import AddStudentByScan from './pages/AddStudentByScan';
 
 
 function App() {
@@ -28,6 +31,9 @@ function App() {
           <Route path="/profile/update" element={<UpdateProfile />} />
           <Route path="/attendance" element={<AttendancePage />} />
           <Route path="/student-list" element={<StudentListPage />} />
+          <Route path="/add-student" element={<AddStudentPage/>} />
+          <Route path="/add-student/file" element={<AddStudentByFile />} />
+          <Route path="/add-student/scan" element={<AddStudentByScan />} />
         </Routes>
       </div>
     </Router>
