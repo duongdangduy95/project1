@@ -74,15 +74,24 @@ const StudentProfile = () => {
         <p><strong>Trường:</strong> {student.school}</p>
         <p><strong>Ngành:</strong> {student.major}</p>
         <p><strong>Email:</strong> {student.email}</p>
-        {student.profileImage && (
-          <img src={student.profileImage} alt="Profile" className="profile-image" />
-        )}
-        {student.imageLeft && (
-          <img src={student.imageLeft} alt="Left Image" className="profile-image" />
-        )}
-        {student.imageRight && (
-          <img src={student.imageRight} alt="Right Image" className="profile-image" />
-        )}
+        <div className="image-container">
+          <h3>Ảnh Đại Diện</h3>
+          {student.profileImage && (
+            <img src={`http://localhost:3000/${student.profileImage}`} alt="Profile" className="profile-image" />
+          )}
+        </div>
+        <div className="image-container">
+          <h3>Ảnh Bên Trái</h3>
+          {student.imageLeft && (
+            <img src={`http://localhost:3000/${student.imageLeft}`} alt="Left Image" className="profile-image-left" />
+          )}
+        </div>
+        <div className="image-container">
+          <h3>Ảnh Bên Phải</h3>
+          {student.imageRight && (
+            <img src={`http://localhost:3000/${student.imageRight}`} alt="Right Image" className="profile-image-right" />
+          )}
+        </div>
         <button onClick={handleUpdateProfile} className="update-profile-btn">
           Cập nhật thông tin
         </button>

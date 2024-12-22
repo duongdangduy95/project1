@@ -1,24 +1,92 @@
+/* Container chính */
 .profile-container {
     font-family: Arial, sans-serif;
     margin: 20px auto;
-    max-width: 600px;
+    max-width: 800px; /* Tăng max-width để có không gian rộng hơn */
     text-align: center;
+    padding: 20px;
   }
   
+  /* Card hiển thị thông tin sinh viên */
   .profile-card {
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 20px;
     background-color: #f9f9f9;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Tăng độ bóng */
   }
   
+  /* Các đoạn văn bản trong card */
   .profile-card p {
     margin: 10px 0;
     font-size: 16px;
+    color: #555; /* Chỉnh lại màu chữ cho dễ đọc */
   }
   
+  /* Tiêu đề thông tin (ví dụ: Mã Sinh Viên, Họ và Tên...) */
   .profile-card strong {
-    color: #333;
+    color: #333; /* Màu chữ cho các thẻ strong */
+  }
+  
+  /* Căn chỉnh ảnh đại diện */
+  .profile-image {
+    width: 200px; /* Tăng kích thước ảnh đại diện */
+    height: 200px; /* Tăng kích thước ảnh đại diện */
+    object-fit: cover; /* Đảm bảo ảnh không bị méo */
+    border-radius: 8px; /* Bo tròn hoàn toàn ảnh */
+    margin: 20px auto; /* Căn giữa ảnh */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng cho ảnh */
+  }
+  
+  /* Căn chỉnh các ảnh bên trái và bên phải */
+  .profile-image-left,
+  .profile-image-right {
+    width: 120px; /* Tăng kích thước các ảnh bên trái và phải */
+    height: 120px; /* Tăng kích thước các ảnh bên trái và phải */
+    object-fit: cover; /* Đảm bảo ảnh không bị méo */
+    border-radius: 8px; /* Bo góc ảnh */
+    margin: 10px; /* Khoảng cách giữa các ảnh */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Thêm bóng cho các ảnh */
+  }
+  
+  /* Đảm bảo các ảnh bên trái và bên phải được hiển thị đúng trong một hàng */
+  .image-container {
+    display: flex;
+    justify-content: center; /* Căn giữa các ảnh */
+    gap: 20px; /* Khoảng cách giữa các ảnh */
+    margin-bottom: 20px;
+  }
+  
+  /* Button Cập nhật thông tin */
+  .update-profile-btn {
+    display: inline-block;
+    background-color: #27ae60;
+    color: white;
+    font-size: 1.1rem;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Hiệu ứng hover cho button */
+  .update-profile-btn:hover {
+    background-color: #2ecc71;
+  }
+  
+  /* Cải thiện các thông báo lỗi và loading */
+  p {
+    font-size: 1rem;
+    color: #e74c3c;
+    text-align: center;
+  }
+  
+  .loading {
+    font-size: 1.2rem;
+    text-align: center;
+    color: #3498db;
+    margin-top: 20px;
   }
   

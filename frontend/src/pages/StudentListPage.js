@@ -69,11 +69,11 @@ function StudentListPage() {
         <div className="student-list">
           {students.map((student) => (
             <div key={student.id} className="student-card">
-              <img
+              {/* <img
                 src={student.profileImage || '/path/to/default-avatar.jpg'}
                 alt={`${student.fullname}'s Avatar`}
                 className="student-avatar"
-              />
+              /> */}
               <h3>{student.fullname}</h3>
               <p>Mã sinh viên: {student.student_id}</p>
               <p>Ngành học: {student.major || 'N/A'}</p>

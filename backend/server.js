@@ -24,6 +24,7 @@ if (!fs.existsSync("uploads")) {
 // Increase the limit for incoming requests
 app.use(bodyParser.json({ limit: '50mb' })); // Adjust limit as needed
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({ origin: "http://localhost:3001", credentials: true }));
