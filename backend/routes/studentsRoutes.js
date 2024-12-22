@@ -65,13 +65,15 @@ router.get('/api/students/profile/:student_id', authenticateToken, async (req, r
       profileImage: student.profileImage,
       imageLeft: student.imageLeft,
       imageRight: student.imageRight,
+      email: student.email,
     });
   } catch (error) {
     console.error('Lỗi khi lấy thông tin sinh viên:', error);
     res.status(500).json({ message: 'Lỗi server' });
   }
 });
-
+// Route upload danh sách sinh viên từ file
+router.post('/students/upload', authenticateToken, upload.single('file'), studentController.uploadStudents);
 // Route thêm sinh viên
 router.post(
   '/',

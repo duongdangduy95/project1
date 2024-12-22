@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db'); 
+const e = require('express');
 //const Class = require('./class'); 
 
 const Student = sequelize.define('Students', {
@@ -33,6 +34,9 @@ const Student = sequelize.define('Students', {
     type: DataTypes.STRING,
   },
   major: {
+    type: DataTypes.STRING,
+  },
+  email: {
     type: DataTypes.STRING,
   },
 });

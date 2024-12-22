@@ -76,6 +76,7 @@ exports.getStudentById = async (req, res) => {
       profileImage: student.profileImage,
       imageLeft: student.imageLeft,
       imageRight: student.imageRight,
+      email: student.email,
     });
   } catch (error) {
     console.error('Lỗi khi lấy thông tin sinh viên:', error);
@@ -84,6 +85,7 @@ exports.getStudentById = async (req, res) => {
 };
 
 
+// API tải file Excel và thêm dữ liệu vào cơ sở dữ liệu
 // Tải file Excel và lưu danh sách sinh viên vào cơ sở dữ liệu
 exports.uploadStudents = async (req, res) => {
   try {
@@ -92,18 +94,16 @@ exports.uploadStudents = async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
+    // Lọc và chuẩn hóa dữ liệu từ Excel
     const students = sheetData.map((row) => ({
-      student_id: row['Student ID'],
-      fullname: row['Fullname'],
-      profileImage: row['Profile Image'] || null,
-      imageLeft: row['Image Left'] || null,
-      imageRight: row['Image Right'] || null,
-      dob: row['DOB'] ? new Date(row['DOB']) : null,
-      school: row['School'] || null,
-      major: row['Major'] || null,
-      class_id: row['Class ID'],
+      student_id: row['student_id'],  // Đảm bảo đúng tên cột là 'student_id'
+      fullname: row['fullname'],       // Đảm bảo đúng tên cột là 'fullname'
+      dob: row['dob'],                 // Đảm bảo đúng tên cột là 'dob'
+      school: row['school'],           // Đảm bảo đúng tên cột là 'school'
+      major: row['major'],             // Đảm bảo đúng tên cột là 'major'
     }));
 
+    // Lưu vào database
     await Student.bulkCreate(students);
 
     res.status(200).json({ message: 'Danh sách sinh viên đã được tải lên thành công!' });

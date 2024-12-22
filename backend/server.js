@@ -332,7 +332,7 @@ app.get('/api/students/profile/:student_id', (req, res) => {
 
   // Câu lệnh SQL để lấy thông tin sinh viên theo student_id
   const sql = `
-    SELECT student_id, fullname, dob, school, major, profileImage, imageLeft, imageRight
+    SELECT student_id, fullname,email, dob, school, major, profileImage, imageLeft, imageRight
     FROM students
     WHERE student_id = ?
   `;
@@ -357,6 +357,7 @@ app.get('/api/students/profile/:student_id', (req, res) => {
       dob: student.dob,
       school: student.school,
       major: student.major,
+      email: student.email,
       profileImage: student.profileImage,
       imageLeft: student.imageLeft,
       imageRight: student.imageRight,
@@ -364,7 +365,31 @@ app.get('/api/students/profile/:student_id', (req, res) => {
   });
 });
 
+// Route để upload dữ liệu sinh viên từ file Excel
+app.post('/api/students/upload', async (req, res) => {
+  const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend
 
+  if (!Array.isArray(studentsData) || studentsData.length === 0) {
+    return res.status(400).json({ message: 'Không có dữ liệu sinh viên' });
+  }
+
+  try {
+    // Thêm dữ liệu sinh viên vào cơ sở dữ liệu
+    for (let student of studentsData) {
+      await Student.create({
+        student_id: student.student_id,
+        fullname: student.fullname,
+        dob: student.dob,
+        school: student.school,
+        major: student.major,
+      });
+    }
+    res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi thêm dữ liệu sinh viên:', error);
+    res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
+  }
+});
 
 
 

@@ -68,6 +68,7 @@ const StudentProfile = () => {
         <p><strong>Ngày Sinh:</strong> {student.dob}</p>
         <p><strong>Trường:</strong> {student.school}</p>
         <p><strong>Ngành:</strong> {student.major}</p>
+        <p><strong>Email:</strong> {student.email}</p>
         {student.profileImage && (
           <img src={student.profileImage} alt="Profile" className="profile-image" />
         )}
