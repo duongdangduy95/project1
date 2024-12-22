@@ -324,10 +324,49 @@ app.post("/api/students/register", upload.fields([
     res.status(500).json({ message: "Lỗi server!" });
   }
 });
+// Route lấy thông tin sinh viên theo student_id
+app.get('/api/students/profile/:student_id', (req, res) => {
+  const { student_id } = req.params; // Lấy student_id từ URL params
 
-// Use the userRoutes for authentication and authorization handling
-//app.use('/api/auth', authRouter);
-//app.use("/user", authenticateMiddleware, userRouter);
+  console.log("Received student_id:", student_id);  // Log để kiểm tra giá trị student_id
+
+  // Câu lệnh SQL để lấy thông tin sinh viên theo student_id
+  const sql = `
+    SELECT student_id, fullname, dob, school, major, profileImage, imageLeft, imageRight
+    FROM students
+    WHERE student_id = ?
+  `;
+
+  // Thực hiện truy vấn SQL
+  db.query(sql, [student_id], (err, result) => {
+    if (err) {
+      console.error('Lỗi khi truy vấn cơ sở dữ liệu:', err);
+      return res.status(500).json({ message: 'Lỗi server' });
+    }
+
+    if (result.length === 0) {
+      console.log('Không tìm thấy sinh viên với student_id:', student_id);
+      return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
+    }
+
+    // Trả về thông tin sinh viên
+    const student = result[0];  // Sinh viên đầu tiên trong kết quả
+    res.status(200).json({
+      student_id: student.student_id,
+      fullname: student.fullname,
+      dob: student.dob,
+      school: student.school,
+      major: student.major,
+      profileImage: student.profileImage,
+      imageLeft: student.imageLeft,
+      imageRight: student.imageRight,
+    });
+  });
+});
+
+
+
+
 
 // Start Server
 const port = 3000;

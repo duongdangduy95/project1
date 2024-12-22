@@ -29,20 +29,45 @@ const upload = multer({ storage: storage });
 
 // Route lấy danh sách tất cả sinh viên
 router.get('/students', authenticateToken, studentController.getAllStudents);
+// Router: Lấy thông tin sinh viên theo student_id
+router.get('/api/students/profile/:student_id', authenticateToken, async (req, res) => {
+  const { student_id } = req.params; // Lấy student_id từ URL params
 
-// Route tìm kiếm sinh viên theo mã sinh viên
-router.get('/:student_id', authenticateToken, async (req, res) => {
   try {
-    const { student_id } = req.params;
-    const student = await Student.findOne({ where: { student_id } });
+    console.log("Received student_id:", student_id);  // Log student_id để kiểm tra
 
-    if (!student) {
+    // Câu lệnh SQL thô để lấy thông tin sinh viên theo student_id
+    const sql = `
+      SELECT student_id, fullname, dob, school, major, profileImage, imageLeft, imageRight
+      FROM Students
+      WHERE student_id = :student_id
+    `;
+
+    // Thực hiện truy vấn SQL thô sử dụng Sequelize
+    const [results, metadata] = await sequelize.query(sql, {
+      replacements: { student_id }, // Truyền giá trị student_id vào câu truy vấn
+      type: QueryTypes.SELECT, // Xác định loại truy vấn là SELECT
+    });
+
+    if (results.length === 0) {
+      console.log('Không tìm thấy sinh viên với student_id:', student_id);  // Log lỗi nếu không tìm thấy sinh viên
       return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
     }
 
-    res.status(200).json(student);
+    // Trả về thông tin sinh viên
+    const student = results[0]; // Sinh viên đầu tiên trong kết quả (vì student_id là unique)
+    res.status(200).json({
+      student_id: student.student_id,
+      fullname: student.fullname,
+      dob: student.dob,
+      school: student.school,
+      major: student.major,
+      profileImage: student.profileImage,
+      imageLeft: student.imageLeft,
+      imageRight: student.imageRight,
+    });
   } catch (error) {
-    console.error('Lỗi khi tìm sinh viên:', error);
+    console.error('Lỗi khi lấy thông tin sinh viên:', error);
     res.status(500).json({ message: 'Lỗi server' });
   }
 });

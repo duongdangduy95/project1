@@ -52,11 +52,11 @@ function StudentListPage() {
         <h1>Danh Sách Sinh Viên</h1>
 
         {/* Phần tải file */}
-        <div className="upload-section">
+        {/* <div className="upload-section">
           <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
           <button onClick={handleUpload}>Tải Lên</button>
           {message && <p>{message}</p>}
-        </div>
+        </div> */}
 
         {/* Nút Thêm Sinh Viên */}
         <div className="add-student-btn">
@@ -75,13 +75,14 @@ function StudentListPage() {
                 className="student-avatar"
               />
               <h3>{student.fullname}</h3>
+              <p>Mã sinh viên: {student.student_id}</p>
               <p>Ngành học: {student.major || 'N/A'}</p>
-              <button 
-                className="view-profile-btn" 
-                onClick={() => alert(`Xem thông tin chi tiết của ${student.fullname}`)}
-              >
-                View Profile
-              </button>
+              <Link to={`/students/profile/${student.student_id}`}>
+  <button className="view-profile-btn">
+    View Profile
+  </button>
+</Link>
+
             </div>
           ))}
         </div>

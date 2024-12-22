@@ -54,6 +54,36 @@ exports.registerStudent = async (req, res) => {
         res.status(500).json({ message: 'Không thể thêm sinh viên. Vui lòng thử lại.' });
     }
     }
+// Controller: Lấy thông tin chi tiết của sinh viên theo student_id
+exports.getStudentById = async (req, res) => {
+  const { student_id } = req.params;  // Lấy student_id từ URL
+
+  try {
+    // Tìm sinh viên theo student_id trong cơ sở dữ liệu
+    const student = await Student.findOne({ where: { student_id } });
+
+    if (!student) {
+      console.log('Không tìm thấy sinh viên với student_id:', student_id);  // Log lỗi để debug
+      return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
+    }
+
+    res.status(200).json({
+      student_id: student.student_id,
+      fullname: student.fullname,
+      dob: student.dob,
+      school: student.school,
+      major: student.major,
+      profileImage: student.profileImage,
+      imageLeft: student.imageLeft,
+      imageRight: student.imageRight,
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy thông tin sinh viên:', error);
+    res.status(500).json({ error: 'Không thể lấy thông tin sinh viên.' });
+  }
+};
+
+
 // Tải file Excel và lưu danh sách sinh viên vào cơ sở dữ liệu
 exports.uploadStudents = async (req, res) => {
   try {
