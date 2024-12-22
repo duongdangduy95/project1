@@ -1,5 +1,8 @@
 const XLSX = require('xlsx');
+const XLSXPopulate = require('xlsx-populate');
 const  Student  = require('../models/student'); // Import model Student
+const fs = require('fs');
+const path = require('path');
 //const xlsx = require('xlsx');
 // Lấy danh sách sinh viên từ cơ sở dữ liệu
 exports.getStudents = async (req, res) => {
@@ -110,5 +113,72 @@ exports.uploadStudents = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi tải file Excel:', error);
     res.status(500).json({ error: 'Không thể tải danh sách sinh viên.' });
+  }
+};
+// Controller: Xuất danh sách sinh viên ra file Excel có chứa ảnh
+exports.exportStudentsToExcel = async (req, res) => {
+  try {
+    // Lấy danh sách sinh viên từ cơ sở dữ liệu
+    const students = await Student.findAll();
+
+    // Tạo workbook và worksheet
+    const workbook = await XLSXPopulate.fromBlankAsync();
+    const sheet = workbook.sheet(0);
+
+    // Thiết lập tiêu đề cột
+    const headers = ['Mã Sinh Viên', 'Họ và Tên', 'Ngày Sinh', 'Trường', 'Ngành', 'Email', 'Ảnh Đại Diện', 'Ảnh Bên Trái', 'Ảnh Bên Phải'];
+    headers.forEach((header, index) => {
+      sheet.cell(1, index + 1).value(header);
+    });
+
+    // Thêm dữ liệu sinh viên vào worksheet
+    students.forEach((student, rowIndex) => {
+      sheet.cell(rowIndex + 2, 1).value(student.student_id);
+      sheet.cell(rowIndex + 2, 2).value(student.fullname);
+      sheet.cell(rowIndex + 2, 3).value(student.dob);
+      sheet.cell(rowIndex + 2, 4).value(student.school);
+      sheet.cell(rowIndex + 2, 5).value(student.major);
+      sheet.cell(rowIndex + 2, 6).value(student.email);
+
+      // Thêm ảnh vào worksheet
+      const addImageToSheet = (imagePath, cell) => {
+        if (imagePath && fs.existsSync(path.join(__dirname, '..', 'uploads', imagePath))) {
+          const image = fs.readFileSync(path.join(__dirname, '..', 'uploads', imagePath));
+          const base64Image = image.toString('base64');
+          sheet.addImage({
+            base64: base64Image,
+            type: 'picture',
+            position: {
+              type: 'twoCellAnchor',
+              from: {
+                col: cell.columnNumber() - 1,
+                row: cell.rowNumber() - 1,
+              },
+              to: {
+                col: cell.columnNumber(),
+                row: cell.rowNumber(),
+              },
+            },
+          });
+        }
+      };
+
+      addImageToSheet(student.profileImage, sheet.cell(rowIndex + 2, 7));
+      addImageToSheet(student.imageLeft, sheet.cell(rowIndex + 2, 8));
+      addImageToSheet(student.imageRight, sheet.cell(rowIndex + 2, 9));
+    });
+
+    // Tạo buffer từ workbook
+    const buffer = await workbook.outputAsync();
+
+    // Thiết lập header để tải file
+    res.setHeader('Content-Disposition', 'attachment; filename=students.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+    // Gửi buffer về client
+    res.send(buffer);
+  } catch (error) {
+    console.error('Lỗi khi xuất danh sách sinh viên ra file Excel:', error);
+    res.status(500).json({ message: 'Không thể xuất danh sách sinh viên. Vui lòng thử lại.' });
   }
 };

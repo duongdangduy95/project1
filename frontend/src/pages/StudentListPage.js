@@ -1,8 +1,8 @@
-// src/pages/StudentListPage.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DashboardLayout from '../components/DashboardLayout'; // Đảm bảo import đúng đường dẫn
 import { Link } from 'react-router-dom';  // Để sử dụng cho liên kết
+import * as XLSX from 'xlsx'; // Import thư viện XLSX
 import './StudentsListpages.css';
 
 function StudentListPage() {
@@ -46,17 +46,31 @@ function StudentListPage() {
       });
   };
 
+  // Xử lý xuất danh sách sinh viên ra file Excel
+  const handleExportExcel = () => {
+    if (students.length === 0) {
+      alert('Danh sách sinh viên trống!');
+      return;
+    }
+
+    // Chuẩn bị dữ liệu cho file Excel
+    const ws = XLSX.utils.json_to_sheet(students); // Chuyển đổi danh sách sinh viên thành định dạng sheet
+    const wb = XLSX.utils.book_new(); // Tạo workbook mới
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh Sách Sinh Viên'); // Gắn sheet vào workbook
+
+    // Xuất file Excel
+    XLSX.writeFile(wb, 'DanhSachSinhVien.xlsx'); // Tải file xuống
+  };
+
   return (
     <DashboardLayout>
       <div className="student-list-page">
         <h1>Danh Sách Sinh Viên</h1>
 
-        {/* Phần tải file */}
-        {/* <div className="upload-section">
-          <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
-          <button onClick={handleUpload}>Tải Lên</button>
-          {message && <p>{message}</p>}
-        </div> */}
+        {/* Nút Xuất File Excel */}
+        <div className="export-btn">
+          <button onClick={handleExportExcel}>Xuất File Excel</button>
+        </div>
 
         {/* Nút Thêm Sinh Viên */}
         <div className="add-student-btn">
@@ -69,20 +83,12 @@ function StudentListPage() {
         <div className="student-list">
           {students.map((student) => (
             <div key={student.id} className="student-card">
-              {/* <img
-                src={student.profileImage || '/path/to/default-avatar.jpg'}
-                alt={`${student.fullname}'s Avatar`}
-                className="student-avatar"
-              /> */}
               <h3>{student.fullname}</h3>
               <p>Mã sinh viên: {student.student_id}</p>
               <p>Ngành học: {student.major || 'N/A'}</p>
               <Link to={`/students/profile/${student.student_id}`}>
-  <button className="view-profile-btn">
-    View Profile
-  </button>
-</Link>
-
+                <button className="view-profile-btn">Xem Hồ Sơ</button>
+              </Link>
             </div>
           ))}
         </div>

@@ -423,7 +423,8 @@ app.put('/api/students/update/:student_id', upload.fields([
   }
 });
 
-
+// Route để xuất danh sách sinh viên ra file Excel
+app.get('/api/students/export', studentController.exportStudentsToExcel);
 // Start Server
 const port = 3000;
 app.listen(port, () => console.log(`Server chạy tại http://localhost:${port}`));
