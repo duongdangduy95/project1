@@ -16,6 +16,7 @@ const  Student  = require('./models/student');
 //const Student = require('./models/student');
 const app = express();
 const studentController = require('./controllers/studentController');
+const { profile } = require("console");
 // Ensure 'uploads' directory exists
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
@@ -214,19 +215,7 @@ app.put('/api/user/update', authenticateMiddleware, upload.single('profileImage'
         WHERE id = ?
       `;
 
-      // Log the update data
-      // console.log('Updating user with:', {
-      //   updatedFullname,
-      //   updatedPhone,
-      //   updatedProvince,
-      //   updatedDistrict,
-      //   updatedCommune,
-      //   updatedVillage,
-      //   updatedGender,
-      //   updatedDob,
-      //   updatedEmail,
-      //   updatedProfileImage,
-      // });
+      
       console.log('Old image path:', user.profileImage);
 console.log('New image path:', updatedProfileImage);
 
@@ -382,6 +371,9 @@ app.post('/api/students/upload', async (req, res) => {
         dob: student.dob,
         school: student.school,
         major: student.major,
+        profileImage: student.profileImage,
+        imageLeft: student.imageLeft,
+        imageRight: student.imageRight,
       });
     }
     res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
@@ -390,7 +382,45 @@ app.post('/api/students/upload', async (req, res) => {
     res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
   }
 });
+// Route để cập nhật thông tin sinh viên
+app.put('/api/students/update/:student_id', upload.fields([
+  { name: 'profileImage' },
+  { name: 'imageLeft' },
+  { name: 'imageRight' }
+]), async (req, res) => {
+  const { student_id } = req.params;
+  const { fullname, dob, school, major, email } = req.body;
 
+  try {
+    // Kiểm tra xem sinh viên có tồn tại không
+    const studentExists = await Student.findOne({ where: { student_id } });
+    if (!studentExists) {
+      return res.status(404).json({ message: "Sinh viên không tồn tại!" });
+    }
+
+    // Xử lý ảnh nếu có
+    const profileImage = req.files && req.files['profileImage'] ? `uploads/${req.files['profileImage'][0].filename}` : studentExists.profileImage;
+    const imageLeft = req.files && req.files['imageLeft'] ? `uploads/${req.files['imageLeft'][0].filename}` : studentExists.imageLeft;
+    const imageRight = req.files && req.files['imageRight'] ? `uploads/${req.files['imageRight'][0].filename}` : studentExists.imageRight;
+
+    // Cập nhật thông tin sinh viên
+    await Student.update({
+      fullname,
+      dob,
+      school,
+      major,
+      email,
+      profileImage,
+      imageLeft,
+      imageRight
+    }, { where: { student_id } });
+
+    res.status(200).json({ message: "Cập nhật thông tin sinh viên thành công!" });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật thông tin sinh viên:', error);
+    res.status(500).json({ message: "Lỗi server, không thể cập nhật thông tin sinh viên" });
+  }
+});
 
 
 // Start Server

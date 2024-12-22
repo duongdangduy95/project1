@@ -17,7 +17,7 @@ import AddStudentPage from './pages/AddStudentPage'; // Đảm bảo AddStudentP
 import AddStudentByFile from './pages/AddStudentByFile';
 import AddStudentByScan from './pages/AddStudentByScan';
 import StudentProfile from './pages/StudentProfile';
-
+import UpdateStudent from './pages/UpdateStudent';
 
 function App() {
   return (
@@ -33,6 +33,7 @@ function App() {
           <Route path="/attendance" element={<AttendancePage />} />
           <Route path="/student-list" element={<StudentListPage />} />
           <Route path="/students/profile/:studentId" element={<StudentProfile />} />
+          <Route path="/students/update/:studentId" element={<UpdateStudent />} /> 
           <Route path="/add-student" element={<AddStudentPage/>} />
           <Route path="/add-student/file" element={<AddStudentByFile />} />
           <Route path="/add-student/scan" element={<AddStudentByScan />} />

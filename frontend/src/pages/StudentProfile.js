@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams to get URL parameters
+import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate to navigate to update page
 import './StudentProfile.css'; // CSS file riêng cho trang profile
 
 const StudentProfile = () => {
@@ -7,6 +7,7 @@ const StudentProfile = () => {
   const [student, setStudent] = useState(null); // State to store student data
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
+  const navigate = useNavigate(); // Hook to navigate to update page
 
   useEffect(() => {
     // Check if studentId exists in the URL
@@ -16,14 +17,13 @@ const StudentProfile = () => {
       return;
     }
 
+    // Fetch student data from the API using the studentId
     fetch(`http://localhost:3000/api/students/profile/${studentId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      })
-      
-      
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`, // If using token-based authentication
+      },
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error('Không tìm thấy sinh viên');
@@ -59,6 +59,11 @@ const StudentProfile = () => {
     return <p>Không tìm thấy thông tin sinh viên.</p>;
   }
 
+  // Navigate to update profile page
+  const handleUpdateProfile = () => {
+    navigate(`/students/update/${studentId}`);
+  };
+
   return (
     <div className="profile-container">
       <h1>Thông Tin Sinh Viên</h1>
@@ -78,6 +83,9 @@ const StudentProfile = () => {
         {student.imageRight && (
           <img src={student.imageRight} alt="Right Image" className="profile-image" />
         )}
+        <button onClick={handleUpdateProfile} className="update-profile-btn">
+          Cập nhật thông tin
+        </button>
       </div>
     </div>
   );
