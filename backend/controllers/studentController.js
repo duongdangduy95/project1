@@ -1,8 +1,10 @@
 const XLSX = require('xlsx');
 const XLSXPopulate = require('xlsx-populate');
 const  Student  = require('../models/student'); // Import model Student
+const  Attendance  = require('../models/Attendance'); // Import model Attendance
 const fs = require('fs');
 const path = require('path');
+const db = require('../db');
 //const xlsx = require('xlsx');
 // Lấy danh sách sinh viên từ cơ sở dữ liệu
 exports.getStudents = async (req, res) => {
@@ -70,6 +72,13 @@ exports.getStudentById = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
     }
 
+    // Lấy thông tin điểm danh từ bảng Attendance
+    const attendanceRecords = await Attendance.findAll({ where: { student_id } });
+
+    // Tính số buổi có mặt và số buổi vắng mặt
+    const presentCount = attendanceRecords.filter(record => record.status === 'có mặt').length;
+    const absentCount = attendanceRecords.filter(record => record.status === 'vắng mặt').length;
+
     res.status(200).json({
       student_id: student.student_id,
       fullname: student.fullname,
@@ -77,9 +86,10 @@ exports.getStudentById = async (req, res) => {
       school: student.school,
       major: student.major,
       profileImage: student.profileImage,
-      imageLeft: student.imageLeft,
-      imageRight: student.imageRight,
       email: student.email,
+      presentCount,
+      absentCount,
+      attendanceRecords,
     });
   } catch (error) {
     console.error('Lỗi khi lấy thông tin sinh viên:', error);
@@ -127,14 +137,18 @@ exports.uploadStudentsFromFile = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
   }
 };
-// const XLSXPopulate = require('xlsx-populate');
-// const { Student } = require('../models/student'); // Đảm bảo import đúng model Student
+
 
 // Controller: Xuất danh sách sinh viên ra file Excel
 exports.exportStudentsToExcel = async (req, res) => {
   try {
     // Lấy danh sách sinh viên từ cơ sở dữ liệu
-    const students = await Student.findAll();
+    const students = await Student.findAll({
+      attributes: ['student_id', 'fullname', 'dob', 'major', 'presentCount', 'absentCount']
+    });
+
+    // Lấy thông tin điểm danh của tất cả sinh viên
+    const attendanceRecords = await Attendance.findAll();
 
     // Tạo workbook và worksheet
     const workbook = await XLSXPopulate.fromBlankAsync();
@@ -142,6 +156,11 @@ exports.exportStudentsToExcel = async (req, res) => {
 
     // Thiết lập tiêu đề cột
     const headers = ['Mã Sinh Viên', 'Họ và Tên', 'Ngày Sinh', 'Ngành Học', 'Số Buổi Có Mặt', 'Số Buổi Vắng'];
+    const uniqueDates = [...new Set(attendanceRecords.map(record => record.date))].sort();
+    uniqueDates.forEach(date => {
+      headers.push(date);
+    });
+
     headers.forEach((header, index) => {
       sheet.cell(1, index + 1).value(header);
     });
@@ -154,6 +173,11 @@ exports.exportStudentsToExcel = async (req, res) => {
       sheet.cell(rowIndex + 2, 4).value(student.major);
       sheet.cell(rowIndex + 2, 5).value(student.presentCount);
       sheet.cell(rowIndex + 2, 6).value(student.absentCount);
+
+      uniqueDates.forEach((date, colIndex) => {
+        const attendance = attendanceRecords.find(record => record.student_id === student.student_id && record.date === date);
+        sheet.cell(rowIndex + 2, colIndex + 7).value(attendance ? attendance.status : 'N/A');
+      });
     });
 
     // Tạo buffer từ workbook
@@ -170,7 +194,11 @@ exports.exportStudentsToExcel = async (req, res) => {
     res.status(500).json({ message: 'Không thể xuất danh sách sinh viên. Vui lòng thử lại.' });
   }
 };
-//const { Student } = require('../models/student'); // Đảm bảo import đúng model Student
+
+
+
+// const { Student } = require('../models/student'); // Đảm bảo import đúng model Student
+// const Attendance = require('../models/attendance'); // Import model Attendance
 
 // Controller: Ghi nhận điểm danh sinh viên
 exports.recordAttendance = async (req, res) => {
@@ -182,19 +210,16 @@ exports.recordAttendance = async (req, res) => {
     if (!student) return res.status(404).json({ error: "Sinh viên không tồn tại" });
 
     // Tạo bản ghi điểm danh
-    const timestamp = new Date().toISOString(); // Lấy thời gian hiện tại
-    const date = timestamp.split('T')[0]; // Lấy ngày hiện tại
-    const attendanceRecord = {
-      [timestamp]: status === 'present' ? 'có mặt' : 'không có mặt',
-    };
+    const date = new Date().toISOString().split('T')[0]; // Lấy ngày hiện tại
+    const time = new Date().toTimeString().split(' ')[0]; // Lấy thời gian hiện tại (HH:MM:SS)
 
-
-    // Cập nhật thông tin điểm danh
-    let attendanceRecords = student.attendanceRecords;
-    if (!Array.isArray(attendanceRecords)) {
-      attendanceRecords = [];
-    }
-    attendanceRecords.push(attendanceRecord);
+    // Lưu thông tin điểm danh vào bảng Attendance
+    await Attendance.create({
+      student_id,
+      date,
+      time,
+      status: status === 'present' ? 'có mặt' : 'vắng mặt',
+    });
 
     // Cập nhật số buổi có mặt và số buổi vắng mặt
     if (status === 'present') {
@@ -203,7 +228,6 @@ exports.recordAttendance = async (req, res) => {
       student.absentCount += 1;
     }
 
-    student.attendanceRecords = attendanceRecords;
     await student.save();
 
     res.status(200).json({ message: "Điểm danh thành công", student });
@@ -226,10 +250,13 @@ exports.getAttendanceRecords = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
     }
 
+    // Lấy thông tin điểm danh từ bảng Attendance
+    const attendanceRecords = await Attendance.findAll({ where: { student_id } });
+
     res.status(200).json({
       student_id: student.student_id,
       fullname: student.fullname,
-      attendanceRecords: student.attendanceRecords,
+      attendanceRecords,
       presentCount: student.presentCount,
       absentCount: student.absentCount,
     });

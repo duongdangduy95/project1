@@ -15,10 +15,17 @@ const Attendance = sequelize.define('Attendance', {
     type: DataTypes.DATEONLY,
     allowNull: false,
   },
+  time:{
+    type: DataTypes.TIME,
+    allowNull: false,
+  },
   status: {
     type: DataTypes.STRING,
     allowNull: false,
   },
+}, {
+  tableName: 'attendance', // Chỉ định rõ tên bảng
+  timestamps: true, // Đảm bảo rằng Sequelize tự động thêm các cột `createdAt` và `updatedAt`
 });
 
 module.exports = Attendance;

@@ -73,6 +73,11 @@ function AddStudentPage() {
   return (
     <DashboardLayout>
       <div className="add-student-page">
+        {/* Buttons for file upload and scan */}
+        <div className="upload-section">
+          <button onClick={handleGoToAddByFile}>Thêm Sinh Viên Từ File Excel</button>
+          <button onClick={handleGoToAddByScan}>Thêm Sinh Viên Bằng Quét Mã</button>
+        </div>
         <h1>Thêm Sinh Viên</h1>
 
         {/* Manual student addition form */}
@@ -138,7 +143,7 @@ function AddStudentPage() {
               accept="image/*"
               onChange={(e) => setProfileImage(e.target.files[0])}
             />
-          </div>
+          {/* </div>
           <div className="form-group">
             <label>Ảnh Bên Trái:</label>
             <input 
@@ -153,7 +158,7 @@ function AddStudentPage() {
               type="file" 
               accept="image/*"
               onChange={(e) => setImageRight(e.target.files[0])}
-            />
+            /> */}
           </div>
           <button type="submit">Thêm Sinh Viên</button>
         </form>

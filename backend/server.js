@@ -321,40 +321,60 @@ app.get('/api/students/profile/:student_id', (req, res) => {
   console.log("Received student_id:", student_id);  // Log để kiểm tra giá trị student_id
 
   // Câu lệnh SQL để lấy thông tin sinh viên theo student_id
-  const sql = `
-    SELECT student_id, fullname,email, dob, school, major, profileImage, imageLeft, imageRight
+  const sqlStudent = `
+    SELECT student_id, fullname, email, dob, school, major, profileImage
     FROM students
     WHERE student_id = ?
   `;
 
-  // Thực hiện truy vấn SQL
-  db.query(sql, [student_id], (err, result) => {
+  // Thực hiện truy vấn SQL để lấy thông tin sinh viên
+  db.query(sqlStudent, [student_id], (err, studentResult) => {
     if (err) {
       console.error('Lỗi khi truy vấn cơ sở dữ liệu:', err);
       return res.status(500).json({ message: 'Lỗi server' });
     }
 
-    if (result.length === 0) {
+    if (studentResult.length === 0) {
       console.log('Không tìm thấy sinh viên với student_id:', student_id);
       return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
     }
 
-    // Trả về thông tin sinh viên
-    const student = result[0];  // Sinh viên đầu tiên trong kết quả
-    res.status(200).json({
-      student_id: student.student_id,
-      fullname: student.fullname,
-      dob: student.dob,
-      school: student.school,
-      major: student.major,
-      email: student.email,
-      profileImage: student.profileImage,
-      imageLeft: student.imageLeft,
-      imageRight: student.imageRight,
+    const student = studentResult[0];  // Sinh viên đầu tiên trong kết quả
+
+    // Câu lệnh SQL để lấy thông tin điểm danh từ bảng Attendance
+    const sqlAttendance = `
+      SELECT date, status
+      FROM Attendance
+      WHERE student_id = ?
+    `;
+
+    // Thực hiện truy vấn SQL để lấy thông tin điểm danh
+    db.query(sqlAttendance, [student_id], (err, attendanceResult) => {
+      if (err) {
+        console.error('Lỗi khi truy vấn cơ sở dữ liệu:', err);
+        return res.status(500).json({ message: 'Lỗi server' });
+      }
+
+      // Tính số buổi có mặt và số buổi vắng mặt
+      const presentCount = attendanceResult.filter(record => record.status === 'có mặt').length;
+      const absentCount = attendanceResult.filter(record => record.status === 'vắng mặt').length;
+
+      // Trả về thông tin sinh viên và thông tin điểm danh
+      res.status(200).json({
+        student_id: student.student_id,
+        fullname: student.fullname,
+        dob: student.dob,
+        school: student.school,
+        major: student.major,
+        email: student.email,
+        profileImage: student.profileImage,
+        presentCount,
+        absentCount,
+        attendanceRecords: attendanceResult,
+      });
     });
   });
 });
-
 // Route để upload dữ liệu sinh viên từ file Excel
 app.post('/api/students/upload', async (req, res) => {
   const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend

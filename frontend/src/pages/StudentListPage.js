@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import DashboardLayout from '../components/DashboardLayout'; // Đảm bảo import đúng đường dẫn
-import { Link } from 'react-router-dom';  // Để sử dụng cho liên kết
-import * as XLSX from 'xlsx'; // Import thư viện XLSX
+import DashboardLayout from '../components/DashboardLayout';
+import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import './StudentsListpages.css';
 
 function StudentListPage() {
   const [students, setStudents] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
 
@@ -46,12 +47,23 @@ function StudentListPage() {
       });
   };
 
+  // Xử lý tìm kiếm sinh viên
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  // Lọc danh sách sinh viên theo tên hoặc mã sinh viên
+  const filteredStudents = students.filter(student => 
+    student.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleExportExcel = () => {
     if (students.length === 0) {
       alert('Danh sách sinh viên trống!');
       return;
     }
-  
+
     // Lọc các trường cần thiết
     const studentsFiltered = students.map(student => ({
       'Mã Sinh Viên': student.student_id,
@@ -61,20 +73,30 @@ function StudentListPage() {
       'Số Buổi Có Mặt': student.presentCount,
       'Số Buổi Vắng': student.absentCount
     }));
-  
+
     // Chuẩn bị dữ liệu cho file Excel
-    const ws = XLSX.utils.json_to_sheet(studentsFiltered); // Chuyển đổi danh sách sinh viên đã lọc thành định dạng sheet
-    const wb = XLSX.utils.book_new(); // Tạo workbook mới
-    XLSX.utils.book_append_sheet(wb, ws, 'Danh Sách Sinh Viên'); // Gắn sheet vào workbook
-  
+    const ws = XLSX.utils.json_to_sheet(studentsFiltered); 
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh Sách Sinh Viên');
+
     // Xuất file Excel
-    XLSX.writeFile(wb, 'DanhSachSinhVien.xlsx'); // Tải file xuống
+    XLSX.writeFile(wb, 'DanhSachSinhVien.xlsx');
   };
-  
+
   return (
     <DashboardLayout>
       <div className="student-list-page">
         <h1>Danh Sách Sinh Viên</h1>
+
+        {/* Thanh tìm kiếm */}
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Tìm kiếm sinh viên..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+        </div>
 
         {/* Nút Xuất File Excel */}
         <div className="export-btn">
@@ -90,7 +112,7 @@ function StudentListPage() {
 
         {/* Hiển thị danh sách sinh viên */}
         <div className="student-list">
-          {students.map((student) => (
+          {filteredStudents.map((student) => (
             <div key={student.id} className="student-card">
               <h3>{student.fullname}</h3>
               <p>Mã sinh viên: {student.student_id}</p>

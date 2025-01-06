@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './profile.css';
-import './dashboard.css';
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -29,15 +28,17 @@ function Profile() {
     }
   }, []);
 
-  const avatarUrl = user?.avatarPath
-    ? user.avatarPath
+  const avatarUrl = user?.profileImage
+    ? `http://localhost:3000/${user.profileImage}`
     : 'https://via.placeholder.com/100';
+
   const formatDateOfBirth = (dob) => {
-      if (!dob) return '';
-      const date = new Date(dob);
-      const options = { month: '2-digit', day: '2-digit',year: 'numeric' };
-      return date.toLocaleDateString('en-GB', options);// 'en-GB' gives dd/mm format
-    };
+    if (!dob) return '';
+    const date = new Date(dob);
+    const options = { month: '2-digit', day: '2-digit', year: 'numeric' };
+    return date.toLocaleDateString('en-GB', options); // 'en-GB' gives dd/mm/yyyy format
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -49,7 +50,7 @@ function Profile() {
       </header>
 
       <div className="dashboard-sidebar">
-      <img src={`http://localhost:3000/${user.profileImage}`} alt="Profile" className="profile-img" />
+        <img src={avatarUrl} alt="Profile" className="profile-img" />
         <p className="username">{user?.fullname}</p>
         <ul>
           <li><a href="/profile">Thông tin cá nhân</a></li>
@@ -63,7 +64,6 @@ function Profile() {
           <h2>Thông tin người dùng</h2>
           <div className="profile-details">
             <div className="profile-header">
-            <img src={`http://localhost:3000/${user.profileImage}`} alt="Profile" className="profile-img" />
               <div className="profile-info">
                 <p><strong>Tên người dùng:</strong> {user?.fullname}</p>
                 <p><strong>Email:</strong> {user?.email}</p>

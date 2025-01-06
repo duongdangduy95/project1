@@ -1,102 +1,89 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate to navigate to update page
-import './StudentProfile.css'; // CSS file riêng cho trang profile
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import DashboardLayout from '../components/DashboardLayout'; // Đảm bảo import đúng đường dẫn
+import './StudentProfile.css'; // CSS file riêng cho trang hồ sơ sinh viên
 
 const StudentProfile = () => {
-  const { studentId } = useParams(); // Retrieve studentId from the URL
-  const [student, setStudent] = useState(null); // State to store student data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
-  const navigate = useNavigate(); // Hook to navigate to update page
+  const { studentId } = useParams();
+  const navigate = useNavigate();
+  const [student, setStudent] = useState(null);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [presentCount, setPresentCount] = useState(0);
+  const [absentCount, setAbsentCount] = useState(0);
 
   useEffect(() => {
-    // Check if studentId exists in the URL
-    if (!studentId) {
-      setError('Mã sinh viên không hợp lệ');
-      setLoading(false);
-      return;
-    }
-
-    // Fetch student data from the API using the studentId
-    fetch(`http://localhost:3000/api/students/profile/${studentId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`, // If using token-based authentication
-      },
-    })
+    // Lấy thông tin sinh viên từ API
+    axios.get(`http://localhost:3000/api/students/${studentId}`)
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Không tìm thấy sinh viên');
-        }
-        return response.json();
+        setStudent(response.data);
       })
-      .then((data) => {
-        if (data && data.student_id) {
-          setStudent(data); // Store student data in state
-        } else {
-          setError('Không tìm thấy thông tin sinh viên.');
-        }
-        setLoading(false); // Set loading to false once data is received or error occurs
+      .catch((error) => console.error('Lỗi khi lấy thông tin sinh viên:', error));
+
+    // Lấy thông tin điểm danh của sinh viên từ API
+    axios.get(`http://localhost:3000/api/students/${studentId}/attendance`)
+      .then((response) => {
+        setAttendanceRecords(response.data.attendanceRecords);
+        setPresentCount(response.data.presentCount);
+        setAbsentCount(response.data.absentCount);
       })
-      .catch((error) => {
-        setError(error.message); // Store error in state if any
-        setLoading(false);
-      });
-  }, [studentId]); // Re-run the effect when studentId changes
+      .catch((error) => console.error('Lỗi khi lấy thông tin điểm danh sinh viên:', error));
+  }, [studentId]);
 
-  // If loading, show loading message
-  if (loading) {
-    return <p>Đang tải thông tin sinh viên...</p>;
-  }
-
-  // If error, show error message
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-  // If student not found, show message
-  if (!student) {
-    return <p>Không tìm thấy thông tin sinh viên.</p>;
-  }
-
-  // Navigate to update profile page
   const handleUpdateProfile = () => {
     navigate(`/students/update/${studentId}`);
   };
 
+  if (!student) {
+    return <div>Loading...</div>;
+  }
+  
+  const formattedDoB=student.dob.split('T')[0];
   return (
-    <div className="profile-container">
-      <h1>Thông Tin Sinh Viên</h1>
-      <div className="profile-card">
-        <p><strong>Mã Sinh Viên:</strong> {student.student_id}</p>
-        <p><strong>Họ và Tên:</strong> {student.fullname}</p>
-        <p><strong>Ngày Sinh:</strong> {student.dob}</p>
-        <p><strong>Trường:</strong> {student.school}</p>
-        <p><strong>Ngành:</strong> {student.major}</p>
-        <p><strong>Email:</strong> {student.email}</p>
-        <div className="image-container">
-          <h3>Ảnh Đại Diện</h3>
-          {student.profileImage && (
-            <img src={`http://localhost:3000/${student.profileImage}`} alt="Profile" className="profile-image" />
-          )}
+    <DashboardLayout>
+      <div className="student-profile">
+        <h1>Hồ Sơ Sinh Viên</h1>
+        <div className="profile-header">
+          <div className="profile-details">
+            <h2>{student.fullname}</h2>
+            <p>Mã sinh viên: {student.student_id}</p>
+            <p>Ngày sinh: {formattedDoB}</p>
+            <p>Ngành học: {student.major}</p>
+            <p>Email: {student.email}</p>
+            <p>Số buổi có mặt: {presentCount}</p>
+            <p>Số buổi nghỉ học: {absentCount}</p>
+          </div>
+          <div className="image-container">
+            <h3>Ảnh Đại Diện</h3>
+            {student.profileImage && (
+              <img src={`http://localhost:3000/${student.profileImage}`} alt="Profile Image" className="profile-image" />
+            )}
+          </div>
         </div>
-        <div className="image-container">
-          <h3>Ảnh Bên Trái</h3>
-          {student.imageLeft && (
-            <img src={`http://localhost:3000/${student.imageLeft}`} alt="Left Image" className="profile-image-left" />
-          )}
+        <button className="update-profile-button" onClick={handleUpdateProfile}>Cập Nhật Thông Tin</button>
+        <div className="attendance-records">
+          <h3>Thông Tin Điểm Danh</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Ngày</th>
+                <th>Thời gian</th>
+                <th>Trạng Thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attendanceRecords.map((record) => (
+                <tr key={record.date}>
+                  <td>{record.date}</td>
+                  <td>{record.time}</td>
+                  <td>{record.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="image-container">
-          <h3>Ảnh Bên Phải</h3>
-          {student.imageRight && (
-            <img src={`http://localhost:3000/${student.imageRight}`} alt="Right Image" className="profile-image-right" />
-          )}
-        </div>
-        <button onClick={handleUpdateProfile} className="update-profile-btn">
-          Cập nhật thông tin
-        </button>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
