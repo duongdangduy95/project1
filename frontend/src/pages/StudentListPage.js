@@ -46,22 +46,31 @@ function StudentListPage() {
       });
   };
 
-  // Xử lý xuất danh sách sinh viên ra file Excel
   const handleExportExcel = () => {
     if (students.length === 0) {
       alert('Danh sách sinh viên trống!');
       return;
     }
-
+  
+    // Lọc các trường cần thiết
+    const studentsFiltered = students.map(student => ({
+      'Mã Sinh Viên': student.student_id,
+      'Họ và Tên': student.fullname,
+      'Ngày Sinh': student.dob,
+      'Ngành Học': student.major,
+      'Số Buổi Có Mặt': student.presentCount,
+      'Số Buổi Vắng': student.absentCount
+    }));
+  
     // Chuẩn bị dữ liệu cho file Excel
-    const ws = XLSX.utils.json_to_sheet(students); // Chuyển đổi danh sách sinh viên thành định dạng sheet
+    const ws = XLSX.utils.json_to_sheet(studentsFiltered); // Chuyển đổi danh sách sinh viên đã lọc thành định dạng sheet
     const wb = XLSX.utils.book_new(); // Tạo workbook mới
     XLSX.utils.book_append_sheet(wb, ws, 'Danh Sách Sinh Viên'); // Gắn sheet vào workbook
-
+  
     // Xuất file Excel
     XLSX.writeFile(wb, 'DanhSachSinhVien.xlsx'); // Tải file xuống
   };
-
+  
   return (
     <DashboardLayout>
       <div className="student-list-page">

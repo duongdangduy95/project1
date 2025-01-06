@@ -39,6 +39,18 @@ const Student = sequelize.define('Students', {
   email: {
     type: DataTypes.STRING,
   },
+  presentCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  absentCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  attendanceRecords: {
+    type: DataTypes.JSONB,
+    defaultValue: {},
+  },
 });
 
 

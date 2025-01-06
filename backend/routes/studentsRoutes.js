@@ -156,5 +156,6 @@ router.put('/update/:student_id', authenticateToken, upload.single('profileImage
     res.status(500).json({ message: 'Không thể cập nhật thông tin sinh viên. Vui lòng thử lại.' });
   }
 });
-
+router.post("/attendance", studentController.recordAttendance);
+router.get('/:student_id/attendance', studentController.getAttendanceRecords);
 module.exports = router;

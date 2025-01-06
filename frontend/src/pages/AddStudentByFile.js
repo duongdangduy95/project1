@@ -68,6 +68,7 @@ const AddStudentByFile = () => {
               <th>Ngày Sinh</th>
               <th>Trường</th>
               <th>Ngành</th>
+              <th>Email</th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +79,7 @@ const AddStudentByFile = () => {
                 <td>{student['dob']}</td>
                 <td>{student['school']}</td>
                 <td>{student['major']}</td>
+                <td>{student['email']}</td>
               </tr>
             ))}
           </tbody>

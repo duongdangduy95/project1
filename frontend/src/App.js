@@ -18,7 +18,7 @@ import AddStudentByFile from './pages/AddStudentByFile';
 import AddStudentByScan from './pages/AddStudentByScan';
 import StudentProfile from './pages/StudentProfile';
 import UpdateStudent from './pages/UpdateStudent';
-
+import ManualAttendancePage from './pages/ManualAttendancePage';
 function App() {
   return (
     <Router>
@@ -37,6 +37,8 @@ function App() {
           <Route path="/add-student" element={<AddStudentPage/>} />
           <Route path="/add-student/file" element={<AddStudentByFile />} />
           <Route path="/add-student/scan" element={<AddStudentByScan />} />
+          <Route path="/attendance/manual" element={<ManualAttendancePage />} />
+          {/* <Route path="/attendance/realtime" element={<RealtimeAttendancePage />} /> */}
         </Routes>
       </div>
     </Router>

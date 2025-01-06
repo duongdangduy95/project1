@@ -1,0 +1,45 @@
+.manual-attendance-page {
+    text-align: center;
+    margin: 20px auto;
+    max-width: 800px;
+  }
+  
+  .student-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+  
+  .student-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    text-align: center;
+  }
+  
+  .student-card h3 {
+    margin: 10px 0;
+  }
+  
+  .student-card p {
+    margin: 5px 0;
+  }
+  
+  .student-card button {
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .student-card button:hover {
+    background-color: #0056b3;
+  }

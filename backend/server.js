@@ -375,6 +375,7 @@ app.post('/api/students/upload', async (req, res) => {
         profileImage: student.profileImage,
         imageLeft: student.imageLeft,
         imageRight: student.imageRight,
+        email: student.email
       });
     }
     res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
@@ -422,9 +423,13 @@ app.put('/api/students/update/:student_id', upload.fields([
     res.status(500).json({ message: "Lỗi server, không thể cập nhật thông tin sinh viên" });
   }
 });
+// Route để tìm sinh viên theo mã số sinh viên
+app.get('/api/students/:student_id', studentController.getStudentById);
 
 // Route để xuất danh sách sinh viên ra file Excel
 app.get('/api/students/export', studentController.exportStudentsToExcel);
+app.post('/api/students/attendance', studentController.recordAttendance);
+app.get('/api/students/:student_id/attendance', studentController.getAttendanceRecords);
 // Start Server
 const port = 3000;
 app.listen(port, () => console.log(`Server chạy tại http://localhost:${port}`));
