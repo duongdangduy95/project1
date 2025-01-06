@@ -1,11 +1,12 @@
-// src/components/DashboardLayout.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './DashboardLayout.css';  // Tạo file CSS riêng cho layout này
 
 function DashboardLayout({ children }) {
   const user = JSON.parse(localStorage.getItem('user'));
-  const avatarUrl = user?.avatar || '/path/to/default-avatar.jpg';
+  const avatarUrl = user?.profileImage
+    ? `http://localhost:3000/${user.profileImage}`
+    : 'https://via.placeholder.com/100';
 
   return (
     <div className="dashboard-layout">
@@ -17,7 +18,7 @@ function DashboardLayout({ children }) {
       <div className="dashboard-container">
         {/* Sidebar */}
         <div className="dashboard-sidebar">
-          <img src={avatarUrl} alt="User Avatar" className="avatar" />
+          <img src={avatarUrl} alt="Profile" className="profile-img" />
           <p className="username">{user?.fullname}</p>
           <ul>
             <li><Link to="/profile">Thông tin cá nhân</Link></li>

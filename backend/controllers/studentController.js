@@ -265,3 +265,37 @@ exports.getAttendanceRecords = async (req, res) => {
     res.status(500).json({ error: 'Không thể lấy thông tin điểm danh sinh viên.' });
   }
 };
+// Controller: Xử lý điểm danh hàng loạt
+exports.bulkAttendance = async (req, res) => {
+  try {
+    const attendanceData = req.body;
+
+    // Lưu thông tin điểm danh vào cơ sở dữ liệu
+    await Promise.all(attendanceData.map(async (record) => {
+      const { student_id, status } = record;
+      const date = new Date().toISOString().split('T')[0]; // Lấy ngày hiện tại
+      const time = new Date().toTimeString().split(' ')[0]; // Lấy thời gian hiện tại (HH:MM:SS)
+
+      await Attendance.create({
+        student_id,
+        date,
+        time,
+        status: status === 'present' ? 'có mặt' : 'vắng mặt',
+      });
+
+      // Cập nhật số buổi có mặt và số buổi vắng mặt
+      const student = await Student.findOne({ where: { student_id } });
+      if (status === 'present') {
+        student.presentCount += 1;
+      } else if (status === 'absent') {
+        student.absentCount += 1;
+      }
+      await student.save();
+    }));
+
+    res.status(200).json({ message: 'Điểm danh thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi điểm danh hàng loạt:', error);
+    res.status(500).json({ message: 'Không thể điểm danh. Vui lòng thử lại.' });
+  }
+};

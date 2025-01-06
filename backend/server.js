@@ -450,6 +450,7 @@ app.get('/api/students/:student_id', studentController.getStudentById);
 app.get('/api/students/export', studentController.exportStudentsToExcel);
 app.post('/api/students/attendance', studentController.recordAttendance);
 app.get('/api/students/:student_id/attendance', studentController.getAttendanceRecords);
+app.post('/api/students/attendance/bulk', studentController.bulkAttendance);
 // Start Server
 const port = 3000;
 app.listen(port, () => console.log(`Server chạy tại http://localhost:${port}`));
