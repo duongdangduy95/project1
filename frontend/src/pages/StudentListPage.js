@@ -3,7 +3,7 @@ import axios from 'axios';
 import DashboardLayout from '../components/DashboardLayout';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
-import './StudentsListpages.css';
+import './StudentsListpages.css'; // Import CSS file
 
 function StudentListPage() {
   const [students, setStudents] = useState([]);
@@ -123,6 +123,7 @@ function StudentListPage() {
             </div>
           ))}
         </div>
+        {message && <p className="message">{message}</p>}
       </div>
     </DashboardLayout>
   );
