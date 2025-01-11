@@ -12,7 +12,7 @@ const { User } = require("./models/user");
 const xlsx = require("xlsx");
 //const multer = require('multer');
 const authRouter = require('./routes/userRoutes'); // Ensure this path is correct
-const  Student  = require('./models/student');
+const Student = require('./models/student');
 //const Student = require('./models/student');
 const app = express();
 const studentController = require('./controllers/studentController');
@@ -139,7 +139,7 @@ app.get('/api/user/profile', authenticateMiddleware, (req, res) => {
   try {
     const userId = req.user.id; // Get user id from decoded token
     const sql = "SELECT * FROM user WHERE id = ?";
-    
+
     db.query(sql, [userId], (err, result) => {
       if (err) {
         console.error('Error fetching user profile:', err);
@@ -173,7 +173,7 @@ app.put('/api/user/update', authenticateMiddleware, upload.single('profileImage'
   try {
     const { fullname, phone, province, district, commune, village, gender, dob, email } = req.body;
     const userId = req.user.id; // Get user ID from token
-    
+
     // Check if the user exists in the database
     const sqlCheck = "SELECT * FROM user WHERE id = ?";
     db.query(sqlCheck, [userId], (err, result) => {
@@ -216,9 +216,9 @@ app.put('/api/user/update', authenticateMiddleware, upload.single('profileImage'
         WHERE id = ?
       `;
 
-      
+
       console.log('Old image path:', user.profileImage);
-console.log('New image path:', updatedProfileImage);
+      console.log('New image path:', updatedProfileImage);
 
       // Execute the update SQL query
       db.query(sqlUpdate, [updatedFullname, updatedPhone, updatedProvince, updatedDistrict, updatedCommune, updatedVillage, updatedGender, updatedDob, updatedEmail, updatedProfileImage, userId], (err, result) => {
@@ -451,6 +451,66 @@ app.get('/api/students/export', studentController.exportStudentsToExcel);
 app.post('/api/students/attendance', studentController.recordAttendance);
 app.get('/api/students/:student_id/attendance', studentController.getAttendanceRecords);
 app.post('/api/students/attendance/bulk', studentController.bulkAttendance);
+
+//chụp ảnh khi phát hiện khuôn mặt
+
+// Đảm bảo thư mục uploads/captured tồn tại
+const capturedDir = path.join(__dirname, '../uploads/captured');
+const fsPromises = require('fs').promises;
+
+async function ensureDirectoryExists() {
+  try {
+    await fsPromises.mkdir(capturedDir, { recursive: true });
+  } catch (err) {
+    console.error('Error creating directory:', err);
+    throw err;
+  }
+}
+
+
+// Hàm để chuyển đổi ngày và giờ thành định dạng hh-mm-ss-dd-mm-yyyy
+function getFormattedDate() {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, '0');       // Đảm bảo ngày có 2 chữ số
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Đảm bảo tháng có 2 chữ số (tháng bắt đầu từ 0)
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');    // Đảm bảo giờ có 2 chữ số
+  const minutes = String(date.getMinutes()).padStart(2, '0'); // Đảm bảo phút có 2 chữ số
+  const seconds = String(date.getSeconds()).padStart(2, '0'); // Đảm bảo giây có 2 chữ số
+
+  return `${hours}-${minutes}-${seconds}-${day}-${month}-${year}`;  // Định dạng hh-mm-ss-dd-mm-yyyy
+}
+
+// API nhận chuỗi Base64 và lưu thành ảnh
+app.post('/api/capture', (req, res) => {
+  const { image } = req.body;
+
+  if (!image) {
+    return res.status(400).json({ error: 'Image là bắt buộc' });
+  }
+
+  // Tách phần dữ liệu Base64 và phần tiền tố data:image/png;base64,...
+  const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+
+  // Tạo tên file tự động từ ngày và giờ hiện tại theo định dạng hh-mm-ss-dd-mm-yyyy
+  const formattedDate = getFormattedDate();  // Lấy ngày và giờ hiện tại
+  const filePath = path.join(__dirname, 'uploads/captured', `${formattedDate}.png`);  // Tạo tên file theo ngày và giờ
+
+  // Tạo thư mục 'uploads' nếu chưa tồn tại
+  if (!fs.existsSync(path.join(__dirname, 'uploads/captured'))) {
+    fs.mkdirSync(path.join(__dirname, 'uploads/captured'));
+  }
+
+  // Lưu ảnh dưới dạng file
+  fs.writeFile(filePath, base64Data, 'base64', (err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Không thể lưu ảnh' });
+    }
+
+    res.status(200).json({ message: 'Ảnh đã được lưu thành công', path: filePath });
+  });
+});
+
 // Start Server
 const port = 3000;
 app.listen(port, () => console.log(`Server chạy tại http://localhost:${port}`));
