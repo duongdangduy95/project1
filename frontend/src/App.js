@@ -13,6 +13,7 @@ import StudentListPage from './pages/StudentListPage';
 import Dashboard from './pages/Dashboard'; // import Dashboard component
 import Profile from './pages/Profile'; // Đảm bảo Profile.js có tồn tại trong src/pages/
 import UpdateProfile from './pages/UpdateProfile'; // Đảm bảo UpdateProfile.js có tồn tại trong src/pages/
+import RollCall from './pages/RollCall';
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/profile/update" element={<UpdateProfile />} />
           <Route path="/attendance" element={<AttendancePage />} />
           <Route path="/student-list" element={<StudentListPage />} />
+          <Route path="/roll-call" element={<RollCall />} />
         </Routes>
       </div>
     </Router>
