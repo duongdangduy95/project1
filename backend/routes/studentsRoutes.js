@@ -159,4 +159,6 @@ router.put('/update/:student_id', authenticateToken, upload.single('profileImage
 router.post("/attendance", studentController.recordAttendance);
 router.get('/:student_id/attendance', studentController.getAttendanceRecords);
 router.post('/attendance/bulk', studentController.bulkAttendance);
+
+
 module.exports = router;

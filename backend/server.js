@@ -511,6 +511,29 @@ app.post('/api/capture', (req, res) => {
   });
 });
 
+// Route để upload ảnh thẻ sinh viên
+app.post('/api/upload/student_card', (req, res) => {
+  const { image } = req.body;
+  const base64Data = image.replace(/^data:image\/jpeg;base64,/, '');
+  const formattedDate = new Date().toLocaleString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).replace(/[:/]/g, '-').replace(/, /g, '--');
+  const filePath = path.join(__dirname, 'uploads/student_card', `${formattedDate}.jpeg`);
+
+  fs.writeFile(filePath, base64Data, 'base64', (err) => {
+    if (err) {
+      console.error('Error saving image:', err);
+      return res.status(500).json({ message: 'Lỗi khi lưu ảnh' });
+    }
+    res.status(200).json({ message: 'Upload ảnh thành công!', filePath });
+  });
+});
+
 // Start Server
 const port = 3000;
 app.listen(port, () => console.log(`Server chạy tại http://localhost:${port}`));

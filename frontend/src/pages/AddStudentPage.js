@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import './AddStudentPage.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function AddStudentPage() {
   const [studentId, setStudentId] = useState('');
@@ -76,7 +78,7 @@ function AddStudentPage() {
         {/* Buttons for file upload and scan */}
         <div className="upload-section">
           <button onClick={handleGoToAddByFile}>Thêm Sinh Viên Từ File Excel</button>
-          <button onClick={handleGoToAddByScan}>Thêm Sinh Viên Bằng Quét Mã</button>
+          <button onClick={handleGoToAddByScan}>Thêm Sinh Viên Bằng Ảnh Thẻ</button>
         </div>
         <h1>Thêm Sinh Viên</h1>
 
@@ -160,14 +162,8 @@ function AddStudentPage() {
               onChange={(e) => setImageRight(e.target.files[0])}
             /> */}
           </div>
-          <button type="submit">Thêm Sinh Viên</button>
+          <button type="submit" className="btn btn-primary btn-lg mb-5">Thêm Sinh Viên</button>
         </form>
-
-        {/* Buttons for file upload and scan */}
-        <div className="upload-section">
-          <button onClick={handleGoToAddByFile}>Thêm Sinh Viên Từ File Excel</button>
-          <button onClick={handleGoToAddByScan}>Thêm Sinh Viên Bằng Quét Mã</button>
-        </div>
 
         {message && <p>{message}</p>}
       </div>
