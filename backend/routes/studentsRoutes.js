@@ -7,6 +7,7 @@ const Student = require('../models/student');
 const studentController = require('../controllers/studentController');
 const authenticateToken = require('../middlewares/authMiddleware'); // Assuming you have a middleware for JWT authentication
 const db = require('../db');  
+const { route } = require("./userRoutes");
 const router = express.Router();
 
 // Tạo thư mục upload nếu chưa tồn tại
@@ -159,4 +160,6 @@ router.put('/update/:student_id', authenticateToken, upload.single('profileImage
 router.post("/attendance", studentController.recordAttendance);
 router.get('/:student_id/attendance', studentController.getAttendanceRecords);
 router.post('/attendance/bulk', studentController.bulkAttendance);
+router.delete('/:student_id', studentController.deleteStudent);
+router.get('/export', studentController.exportStudents);
 module.exports = router;

@@ -1,0 +1,1 @@
+python_services/ocr/weights/vgg_transformer.pth filter=lfs diff=lfs merge=lfs -text

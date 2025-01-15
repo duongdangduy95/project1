@@ -11,6 +11,8 @@ const StudentProfile = () => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [presentCount, setPresentCount] = useState(0);
   const [absentCount, setAbsentCount] = useState(0);
+  const [message, setMessage] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     // Lấy thông tin sinh viên từ API
@@ -34,20 +36,43 @@ const StudentProfile = () => {
     navigate(`/students/update/${studentId}`);
   };
 
+  const handleDeleteStudent = () => {
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    axios.delete(`http://localhost:3000/api/students/${studentId}`)
+      .then((response) => {
+        setMessage(response.data.message);
+        navigate('/student-list'); // Điều hướng về trang danh sách sinh viên sau khi xóa
+      })
+      .catch((error) => {
+        console.error('Lỗi khi xóa sinh viên:', error);
+        setMessage('Không thể xóa sinh viên. Vui lòng thử lại.');
+      });
+  };
+
+  const cancelDelete = () => {
+    setShowConfirm(false);
+  };
+
   if (!student) {
     return <div>Loading...</div>;
   }
-  
-  const formattedDoB=student.dob.split('T')[0];
+
+  // Chuyển đổi ngày sinh để định dạng lại
+  const formattedDob = student.dob.split('T')[0];
+
   return (
     <DashboardLayout>
       <div className="student-profile">
         <h1>Hồ Sơ Sinh Viên</h1>
+        {message && <p className="message">{message}</p>}
         <div className="profile-header">
           <div className="profile-details">
             <h2>{student.fullname}</h2>
             <p>Mã sinh viên: {student.student_id}</p>
-            <p>Ngày sinh: {formattedDoB}</p>
+            <p>Ngày sinh: {formattedDob}</p>
             <p>Ngành học: {student.major}</p>
             <p>Email: {student.email}</p>
             <p>Số buổi có mặt: {presentCount}</p>
@@ -61,19 +86,27 @@ const StudentProfile = () => {
           </div>
         </div>
         <button className="update-profile-button" onClick={handleUpdateProfile}>Cập Nhật Thông Tin</button>
+        <button className="delete-profile-button" onClick={handleDeleteStudent}>Xóa Sinh Viên</button>
+        {showConfirm && (
+          <div className="confirm-dialog">
+            <p>Bạn có chắc chắn muốn xóa sinh viên này khỏi danh sách không?</p>
+            <button className="confirm-button" onClick={confirmDelete}>Đồng ý</button>
+            <button className="cancel-button" onClick={cancelDelete}>Hủy</button>
+          </div>
+        )}
         <div className="attendance-records">
           <h3>Thông Tin Điểm Danh</h3>
           <table>
             <thead>
               <tr>
                 <th>Ngày</th>
-                <th>Thời gian</th>
+                <th>Thời Gian</th>
                 <th>Trạng Thái</th>
               </tr>
             </thead>
             <tbody>
               {attendanceRecords.map((record) => (
-                <tr key={record.date}>
+                <tr key={`${record.date}-${record.time}`}>
                   <td>{record.date}</td>
                   <td>{record.time}</td>
                   <td>{record.status}</td>

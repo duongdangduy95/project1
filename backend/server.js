@@ -375,7 +375,6 @@ app.get('/api/students/profile/:student_id', (req, res) => {
     });
   });
 });
-// Route để upload dữ liệu sinh viên từ file Excel
 app.post('/api/students/upload', async (req, res) => {
   const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend
 
@@ -384,9 +383,28 @@ app.post('/api/students/upload', async (req, res) => {
   }
 
   try {
-    // Thêm dữ liệu sinh viên vào cơ sở dữ liệu
+    const duplicateIds = [];
+    const newStudents = [];
+
     for (let student of studentsData) {
+      // Kiểm tra xem mã sinh viên đã tồn tại hay chưa
+      const existingStudent = await Student.findOne({
+        where: { student_id: student.student_id },
+      });
+
+      if (existingStudent) {
+        // Nếu đã tồn tại, thêm vào danh sách trùng lặp
+        duplicateIds.push(student.student_id);
+      } else {
+        // Nếu không, thêm vào danh sách để thêm mới
+        newStudents.push(student);
+      }
+    }
+
+    // Chỉ thêm các sinh viên chưa trùng lặp vào cơ sở dữ liệu
+    for (let student of newStudents) {
       await Student.create({
+
         student_id: student.student_id,
         fullname: student.fullname,
         dob: student.dob,
@@ -395,15 +413,21 @@ app.post('/api/students/upload', async (req, res) => {
         profileImage: student.profileImage,
         imageLeft: student.imageLeft,
         imageRight: student.imageRight,
-        email: student.email
+        email: student.email,
       });
     }
-    res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
+
+    const message =
+      duplicateIds.length > 0
+        ? `Một số sinh viên đã bị bỏ qua vì trùng lặp mã số: ${duplicateIds.join(', ')}`
+        : 'Dữ liệu sinh viên đã được tải lên thành công!';
+    res.status(200).json({ message });
   } catch (error) {
     console.error('Lỗi khi thêm dữ liệu sinh viên:', error);
     res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
   }
 });
+
 // Route để cập nhật thông tin sinh viên
 app.put('/api/students/update/:student_id', upload.fields([
   { name: 'profileImage' },
@@ -443,6 +467,7 @@ app.put('/api/students/update/:student_id', upload.fields([
     res.status(500).json({ message: "Lỗi server, không thể cập nhật thông tin sinh viên" });
   }
 });
+
 // Route để tìm sinh viên theo mã số sinh viên
 app.get('/api/students/:student_id', studentController.getStudentById);
 
@@ -451,6 +476,7 @@ app.get('/api/students/export', studentController.exportStudentsToExcel);
 app.post('/api/students/attendance', studentController.recordAttendance);
 app.get('/api/students/:student_id/attendance', studentController.getAttendanceRecords);
 app.post('/api/students/attendance/bulk', studentController.bulkAttendance);
+app.delete('/api/students/:student_id', studentController.deleteStudent);
 // Start Server
 const port = 3000;
 app.listen(port, () => console.log(`Server chạy tại http://localhost:${port}`));

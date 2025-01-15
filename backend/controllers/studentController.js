@@ -100,6 +100,8 @@ exports.getStudentById = async (req, res) => {
 
 // API tải file Excel và thêm dữ liệu vào cơ sở dữ liệu
 // Tải file Excel và lưu danh sách sinh viên vào cơ sở dữ liệu
+//const { Student } = require('../models'); // Đảm bảo import đúng model
+
 // Controller: Thêm sinh viên từ file Excel
 exports.uploadStudentsFromFile = async (req, res) => {
   const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend
@@ -111,6 +113,9 @@ exports.uploadStudentsFromFile = async (req, res) => {
   try {
     // Kiểm tra mã số sinh viên trước khi thêm vào cơ sở dữ liệu
     for (let student of studentsData) {
+      if (!student.student_id) {
+        return res.status(400).json({ message: 'Mã sinh viên không hợp lệ' });
+      }
       const studentExists = await Student.findOne({ where: { student_id: student.student_id } });
       if (studentExists) {
         return res.status(400).json({ message: `Mã sinh viên ${student.student_id} đã tồn tại!` });
@@ -131,20 +136,22 @@ exports.uploadStudentsFromFile = async (req, res) => {
         imageRight: student.imageRight,
       });
     }
-    res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
+
+    res.status(201).json({ message: 'Thêm sinh viên từ file thành công!' });
   } catch (error) {
-    console.error('Lỗi khi thêm dữ liệu sinh viên:', error);
-    res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
+    console.error('Lỗi khi thêm sinh viên từ file:', error);
+    res.status(500).json({ message: 'Không thể thêm sinh viên từ file. Vui lòng thử lại.' });
   }
 };
 
+// const XLSXPopulate = require('xlsx-populate');
+// const { Student, Attendance } = require('../models'); // Adjust the import according to your project structure
 
-// Controller: Xuất danh sách sinh viên ra file Excel
 exports.exportStudentsToExcel = async (req, res) => {
   try {
     // Lấy danh sách sinh viên từ cơ sở dữ liệu
     const students = await Student.findAll({
-      attributes: ['student_id', 'fullname', 'dob', 'major', 'presentCount', 'absentCount']
+      attributes: ['student_id', 'fullname', 'dob', 'email', 'major', 'school', 'presentCount', 'absentCount']
     });
 
     // Lấy thông tin điểm danh của tất cả sinh viên
@@ -155,10 +162,11 @@ exports.exportStudentsToExcel = async (req, res) => {
     const sheet = workbook.sheet(0);
 
     // Thiết lập tiêu đề cột
-    const headers = ['Mã Sinh Viên', 'Họ và Tên', 'Ngày Sinh', 'Ngành Học', 'Số Buổi Có Mặt', 'Số Buổi Vắng'];
+    const headers = ['STT', 'Mã Sinh Viên', 'Họ và Tên', 'Ngày Sinh', 'Email', 'Ngành Học', 'Trường', 'Số Buổi Có Mặt', 'Số Buổi Vắng'];
     const uniqueDates = [...new Set(attendanceRecords.map(record => record.date))].sort();
     uniqueDates.forEach(date => {
       headers.push(date);
+      headers.push(`Thời Gian Điểm Danh ${date}`);
     });
 
     headers.forEach((header, index) => {
@@ -167,16 +175,20 @@ exports.exportStudentsToExcel = async (req, res) => {
 
     // Thêm dữ liệu sinh viên vào worksheet
     students.forEach((student, rowIndex) => {
-      sheet.cell(rowIndex + 2, 1).value(student.student_id);
-      sheet.cell(rowIndex + 2, 2).value(student.fullname);
-      sheet.cell(rowIndex + 2, 3).value(student.dob);
-      sheet.cell(rowIndex + 2, 4).value(student.major);
-      sheet.cell(rowIndex + 2, 5).value(student.presentCount);
-      sheet.cell(rowIndex + 2, 6).value(student.absentCount);
+      sheet.cell(rowIndex + 2, 1).value(rowIndex + 1);
+      sheet.cell(rowIndex + 2, 2).value(student.student_id);
+      sheet.cell(rowIndex + 2, 3).value(student.fullname);
+      sheet.cell(rowIndex + 2, 4).value(student.dob ? student.dob.split('T')[0] : 'N/A');
+      sheet.cell(rowIndex + 2, 5).value(student.email || 'N/A');
+      sheet.cell(rowIndex + 2, 6).value(student.major || 'N/A');
+      sheet.cell(rowIndex + 2, 7).value(student.school || 'N/A');
+      sheet.cell(rowIndex + 2, 8).value(student.presentCount || 0);
+      sheet.cell(rowIndex + 2, 9).value(student.absentCount || 0);
 
       uniqueDates.forEach((date, colIndex) => {
         const attendance = attendanceRecords.find(record => record.student_id === student.student_id && record.date === date);
-        sheet.cell(rowIndex + 2, colIndex + 7).value(attendance ? attendance.status : 'N/A');
+        sheet.cell(rowIndex + 2, colIndex * 2 + 10).value(attendance ? (attendance.status === 'present' ? 'Có mặt' : 'Vắng mặt') : 'N/A');
+        sheet.cell(rowIndex + 2, colIndex * 2 + 11).value(attendance ? attendance.time : 'N/A');
       });
     });
 
@@ -297,5 +309,22 @@ exports.bulkAttendance = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi điểm danh hàng loạt:', error);
     res.status(500).json({ message: 'Không thể điểm danh. Vui lòng thử lại.' });
+  }
+};
+ // Controller: Xóa sinh viên và toàn bộ thông tin liên quan
+exports.deleteStudent = async (req, res) => {
+  const { student_id } = req.params;
+
+  try {
+    // Xóa thông tin điểm danh của sinh viên
+    await Attendance.destroy({ where: { student_id } });
+
+    // Xóa thông tin sinh viên
+    await Student.destroy({ where: { student_id } });
+
+    res.status(200).json({ message: 'Xóa sinh viên thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa sinh viên:', error);
+    res.status(500).json({ message: 'Không thể xóa sinh viên. Vui lòng thử lại.' });
   }
 };
