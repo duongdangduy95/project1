@@ -65,13 +65,17 @@ function StudentListPage() {
     }
 
     // Lọc các trường cần thiết
-    const studentsFiltered = students.map(student => ({
+    const studentsFiltered = students.map((student,index) => ({
+      'STT': index + 1,
       'Mã Sinh Viên': student.student_id,
       'Họ và Tên': student.fullname,
-      'Ngày Sinh': student.dob,
+      'Ngày Sinh': student.dob.split('T')[0],
+      'Email': student.email,
+      
+      'Trường': student.school,
       'Ngành Học': student.major,
-      'Số Buổi Có Mặt': student.presentCount,
-      'Số Buổi Vắng': student.absentCount
+      // 'Số Buổi Có Mặt': student.presentCount,
+      // 'Số Buổi Vắng': student.absentCount
     }));
 
     // Chuẩn bị dữ liệu cho file Excel

@@ -17,10 +17,8 @@ function AddStudentPage() {
   const [message, setMessage] = useState('');
   const history = useNavigate();
 
-  // Handle adding student manually
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form is being submitted...");
     const formData = new FormData();
     formData.append('student_id', studentId);
     formData.append('fullname', fullname);
@@ -28,38 +26,22 @@ function AddStudentPage() {
     formData.append('school', school);
     formData.append('major', major);
     formData.append('email', email);
-    if (profileImage) {
-      formData.append('profileImage', profileImage);
-    }
-    if (imageLeft) {
-      formData.append('imageLeft', imageLeft);
-    }
-    if (imageRight) {
-      formData.append('imageRight', imageRight);
-    }
-    console.log("Form Data: ", {
-      studentId,
-      fullname,
-      dob,
-      email,
-      school,
-      major,
-      profileImage,
-      imageLeft,
-      imageRight,
-    });
+    if (profileImage) formData.append('profileImage', profileImage);
+    if (imageLeft) formData.append('imageLeft', imageLeft);
+    if (imageRight) formData.append('imageRight', imageRight);
+  
     try {
-      const response = await axios.post('http://localhost:3000/api/students/register', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      await axios.post('http://localhost:3000/api/students/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setMessage(response.data.message);
+      setMessage('Thêm sinh viên thành công!');
+      setTimeout(() => history('/student-list'), 1500);
     } catch (error) {
       console.error('Lỗi khi thêm sinh viên:', error);
       setMessage('Không thể thêm sinh viên. Vui lòng thử lại.');
     }
   };
+  
   // Navigate to "Add student from file" page
   const handleGoToAddByFile = () => {
     history('/add-student/file');

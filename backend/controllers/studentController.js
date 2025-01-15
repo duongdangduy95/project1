@@ -100,6 +100,8 @@ exports.getStudentById = async (req, res) => {
 
 // API tải file Excel và thêm dữ liệu vào cơ sở dữ liệu
 // Tải file Excel và lưu danh sách sinh viên vào cơ sở dữ liệu
+//const { Student } = require('../models'); // Đảm bảo import đúng model
+
 // Controller: Thêm sinh viên từ file Excel
 exports.uploadStudentsFromFile = async (req, res) => {
   const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend
@@ -111,6 +113,9 @@ exports.uploadStudentsFromFile = async (req, res) => {
   try {
     // Kiểm tra mã số sinh viên trước khi thêm vào cơ sở dữ liệu
     for (let student of studentsData) {
+      if (!student.student_id) {
+        return res.status(400).json({ message: 'Mã sinh viên không hợp lệ' });
+      }
       const studentExists = await Student.findOne({ where: { student_id: student.student_id } });
       if (studentExists) {
         return res.status(400).json({ message: `Mã sinh viên ${student.student_id} đã tồn tại!` });
@@ -131,13 +136,13 @@ exports.uploadStudentsFromFile = async (req, res) => {
         imageRight: student.imageRight,
       });
     }
-    res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
+
+    res.status(201).json({ message: 'Thêm sinh viên từ file thành công!' });
   } catch (error) {
-    console.error('Lỗi khi thêm dữ liệu sinh viên:', error);
-    res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
+    console.error('Lỗi khi thêm sinh viên từ file:', error);
+    res.status(500).json({ message: 'Không thể thêm sinh viên từ file. Vui lòng thử lại.' });
   }
 };
-
 
 // Controller: Xuất danh sách sinh viên ra file Excel
 exports.exportStudentsToExcel = async (req, res) => {
@@ -155,7 +160,7 @@ exports.exportStudentsToExcel = async (req, res) => {
     const sheet = workbook.sheet(0);
 
     // Thiết lập tiêu đề cột
-    const headers = ['Mã Sinh Viên', 'Họ và Tên', 'Ngày Sinh', 'Ngành Học', 'Số Buổi Có Mặt', 'Số Buổi Vắng'];
+    const headers = ['stt','Mã Sinh Viên', 'Họ và Tên', 'Ngày Sinh','email', 'Ngành Học','Trường', 'Số Buổi Có Mặt', 'Số Buổi Vắng'];
     const uniqueDates = [...new Set(attendanceRecords.map(record => record.date))].sort();
     uniqueDates.forEach(date => {
       headers.push(date);
@@ -167,9 +172,11 @@ exports.exportStudentsToExcel = async (req, res) => {
 
     // Thêm dữ liệu sinh viên vào worksheet
     students.forEach((student, rowIndex) => {
+      sheet.cell(rowIndex + 2, 1).value(rowIndex + 1);
       sheet.cell(rowIndex + 2, 1).value(student.student_id);
       sheet.cell(rowIndex + 2, 2).value(student.fullname);
       sheet.cell(rowIndex + 2, 3).value(student.dob);
+      sheet.cell(rowIndex + 2, 4).value(student.email);
       sheet.cell(rowIndex + 2, 4).value(student.major);
       sheet.cell(rowIndex + 2, 5).value(student.presentCount);
       sheet.cell(rowIndex + 2, 6).value(student.absentCount);
@@ -297,5 +304,22 @@ exports.bulkAttendance = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi điểm danh hàng loạt:', error);
     res.status(500).json({ message: 'Không thể điểm danh. Vui lòng thử lại.' });
+  }
+};
+ // Controller: Xóa sinh viên và toàn bộ thông tin liên quan
+exports.deleteStudent = async (req, res) => {
+  const { student_id } = req.params;
+
+  try {
+    // Xóa thông tin điểm danh của sinh viên
+    await Attendance.destroy({ where: { student_id } });
+
+    // Xóa thông tin sinh viên
+    await Student.destroy({ where: { student_id } });
+
+    res.status(200).json({ message: 'Xóa sinh viên thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa sinh viên:', error);
+    res.status(500).json({ message: 'Không thể xóa sinh viên. Vui lòng thử lại.' });
   }
 };
