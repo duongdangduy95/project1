@@ -102,6 +102,8 @@ exports.getStudentById = async (req, res) => {
 // Tải file Excel và lưu danh sách sinh viên vào cơ sở dữ liệu
 //const { Student } = require('../models'); // Đảm bảo import đúng model
 
+//const { Student } = require('../models'); // Đảm bảo import đúng model
+
 // Controller: Thêm sinh viên từ file Excel
 exports.uploadStudentsFromFile = async (req, res) => {
   const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend
@@ -113,6 +115,9 @@ exports.uploadStudentsFromFile = async (req, res) => {
   try {
     // Kiểm tra mã số sinh viên trước khi thêm vào cơ sở dữ liệu
     for (let student of studentsData) {
+      if (!student.student_id) {
+        return res.status(400).json({ message: 'Mã sinh viên không hợp lệ' });
+      }
       if (!student.student_id) {
         return res.status(400).json({ message: 'Mã sinh viên không hợp lệ' });
       }
@@ -138,14 +143,14 @@ exports.uploadStudentsFromFile = async (req, res) => {
     }
 
     res.status(201).json({ message: 'Thêm sinh viên từ file thành công!' });
+
+    //res.status(201).json({ message: 'Thêm sinh viên từ file thành công!' });
   } catch (error) {
     console.error('Lỗi khi thêm sinh viên từ file:', error);
     res.status(500).json({ message: 'Không thể thêm sinh viên từ file. Vui lòng thử lại.' });
-  }
+   }
 };
 
-// const XLSXPopulate = require('xlsx-populate');
-// const { Student, Attendance } = require('../models'); // Adjust the import according to your project structure
 
 exports.exportStudentsToExcel = async (req, res) => {
   try {
@@ -309,6 +314,23 @@ exports.bulkAttendance = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi điểm danh hàng loạt:', error);
     res.status(500).json({ message: 'Không thể điểm danh. Vui lòng thử lại.' });
+  }
+};
+ // Controller: Xóa sinh viên và toàn bộ thông tin liên quan
+exports.deleteStudent = async (req, res) => {
+  const { student_id } = req.params;
+
+  try {
+    // Xóa thông tin điểm danh của sinh viên
+    await Attendance.destroy({ where: { student_id } });
+
+    // Xóa thông tin sinh viên
+    await Student.destroy({ where: { student_id } });
+
+    res.status(200).json({ message: 'Xóa sinh viên thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa sinh viên:', error);
+    res.status(500).json({ message: 'Không thể xóa sinh viên. Vui lòng thử lại.' });
   }
 };
  // Controller: Xóa sinh viên và toàn bộ thông tin liên quan
