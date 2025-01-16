@@ -136,7 +136,7 @@ Dự án này xây dựng một ứng dụng web sử dụng công nghệ nhận
   - Bước 3: Chạy dự án
     ```bash
     npm start
-##Mọi thắc mắc vui lòng liên hệ
+## Mọi thắc mắc vui lòng liên hệ
 - Dương Đăng Duy : duy.dd225185@sis.hust.edu.vn
 - Nguyễn Nhật Huy : huy.nn225335@sis.hust.edu.vn
 
