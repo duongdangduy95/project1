@@ -4,8 +4,10 @@ Dự án này xây dựng một ứng dụng web sử dụng công nghệ nhận
 ---
 
 ## Người tham gia
-- ** Dương Đăng Duy ** : thiết kế database, các chức năng cơ bản, chức năng thêm sinh viên bằng tay ,thêm sinh viên bằng file, xuất kết quả điểm danh.
-- ** Nguyễn Nhật Huy ** : thiết kế frontend, tạo chức năng điểm danh kết hợp nhận diện khuôn mặt, chức năng thêm sinh viên bằng quét thẻ, kiểm thử.
+- Dương Đăng Duy : thiết kế database, các chức năng cơ bản, chức năng thêm sinh viên bằng tay ,thêm sinh viên bằng file, xuất kết quả điểm danh.
+- Nguyễn Nhật Huy : thiết kế frontend, tạo chức năng điểm danh kết hợp nhận diện khuôn mặt, chức năng thêm sinh viên bằng quét thẻ, kiểm thử.
+
+
 
 ---
 ## Thiết kế hệ thống
@@ -15,7 +17,7 @@ Dự án này xây dựng một ứng dụng web sử dụng công nghệ nhận
    - sử dụng các thư viện reactjs.
 - Máy chủ (Backend):
    - Ngôn ngữ :Nodejs, python.
-   - Sử dụng các thư viện.
+   - Sử dụng các thư viện nodejs và python.
 - Cơ sở dữ liệu:
    sử dụng MySQL lưu trữ thông tin sinh viên và thông tin điểm danh của sinh viên.
 - Các thư viện AI đã sử dụng
@@ -126,7 +128,7 @@ Dự án này xây dựng một ứng dụng web sử dụng công nghệ nhận
 ### Cài đặt và chạy dự án
   - Bước 1: clone dự án
     ```bash
-    git clone https://github.com/yourusername/face-recognition-attendance.git
+    git clone https://github.com/duongdangduy95/project1.git
     cd face-recognition-attendance
   - Bước 2 : Cài đặt các thư viện cần thiết
     ```bash
@@ -134,6 +136,8 @@ Dự án này xây dựng một ứng dụng web sử dụng công nghệ nhận
   - Bước 3: Chạy dự án
     ```bash
     npm start
-  
+##Mọi thắc mắc vui lòng liên hệ
+- Dương Đăng Duy : duy.dd225185@sis.hust.edu.vn
+- Nguyễn Nhật Huy : huy.nn225335@sis.hust.edu.vn
 
 
