@@ -22,7 +22,7 @@ function Dashboard() {
         <p className="username">{user?.fullname}</p>
         <ul>
         <li><Link to="/profile">Thông tin cá nhân</Link></li>
-            <li><Link to="/class-list">Danh sách lớp</Link></li>
+        <li><Link to="/student-list">Danh sách sinh viên</Link></li>
             <li><Link to="/attendance">Điểm danh</Link></li>
         </ul>
       </div>

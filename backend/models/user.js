@@ -1,6 +1,5 @@
 const {  Sequelize,DataTypes } = require('sequelize');
-const sequelize = require('../db'); // Đảm bảo bạn đã có kết nối MySQL
-//const sequelize = new Sequelize('mysql://user:password@localhost:3306/database');
+const sequelize = require('../db'); 
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
@@ -29,15 +28,15 @@ const User = sequelize.define('User', {
     allowNull: true,
   },
   province: {
-    type: DataTypes.STRING, // Trường tỉnh
+    type: DataTypes.STRING, 
     allowNull: false,
   },
   district: {
-    type: DataTypes.STRING, // Trường huyện
+    type: DataTypes.STRING, 
     allowNull: false,
   },
   commune: {
-    type: DataTypes.STRING, // Trường xã
+    type: DataTypes.STRING, 
     allowNull: false,
   },
 
@@ -46,11 +45,11 @@ const User = sequelize.define('User', {
     allowNull: true,
   },
   profileImage: {
-    type: DataTypes.STRING, // Lưu trữ đường dẫn hoặc tên file ảnh
+    type: DataTypes.STRING, 
     allowNull: true,
   },
   password: {
-    type: DataTypes.STRING, // Lưu trữ mật khẩu đã được mã hóa (hashed)
+    type: DataTypes.STRING, 
     allowNull: false,
   },
 });

@@ -13,8 +13,13 @@ import StudentListPage from './pages/StudentListPage';
 import Dashboard from './pages/Dashboard'; // import Dashboard component
 import Profile from './pages/Profile'; // Đảm bảo Profile.js có tồn tại trong src/pages/
 import UpdateProfile from './pages/UpdateProfile'; // Đảm bảo UpdateProfile.js có tồn tại trong src/pages/
-
-
+import AddStudentPage from './pages/AddStudentPage'; // Đảm bảo AddStudentPage.js có tồn tại trong src/pages/
+import AddStudentByFile from './pages/AddStudentByFile';
+import AddStudentByScan from './pages/AddStudentByScan';
+import StudentProfile from './pages/StudentProfile';
+import UpdateStudent from './pages/UpdateStudent';
+import ManualAttendancePage from './pages/ManualAttendancePage';
+import AttendanceRealtimePage from './pages/RealtimeAttendancePage';
 function App() {
   return (
     <Router>
@@ -28,6 +33,14 @@ function App() {
           <Route path="/profile/update" element={<UpdateProfile />} />
           <Route path="/attendance" element={<AttendancePage />} />
           <Route path="/student-list" element={<StudentListPage />} />
+          <Route path="/students/profile/:studentId" element={<StudentProfile />} />
+          <Route path="/students/update/:studentId" element={<UpdateStudent />} />
+          <Route path="/add-student" element={<AddStudentPage />} />
+          <Route path="/add-student/file" element={<AddStudentByFile />} />
+          <Route path="/add-student/scan" element={<AddStudentByScan />} />
+          <Route path="/attendance/manual" element={<ManualAttendancePage />} />
+          <Route path="/attendance/realtime" element={<AttendanceRealtimePage />} />
+          {/* <Route path="/attendance/realtime" element={<RealtimeAttendancePage />} /> */}
         </Routes>
       </div>
     </Router>

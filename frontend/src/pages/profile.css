@@ -1,56 +1,120 @@
-
-/* Main Content */
-
-/* Profile container */
-.profile-container {
+/* Định dạng tổng thể cho trang dashboard */
+.dashboard-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  background-color: #343a40;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.header-title {
+  margin: 0;
+}
+
+.dashboard-sidebar {
+  background-color: #f8f9fa;
+  padding: 20px;
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.dashboard-sidebar img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.username {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.dashboard-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.dashboard-sidebar ul li {
+  margin-bottom: 10px;
+}
+
+.dashboard-sidebar ul li a {
+  color: #343a40;
+  text-decoration: none;
+}
+
+.dashboard-sidebar ul li a:hover {
+  text-decoration: underline;
+}
+
+.dashboard-main {
+  flex-grow: 1;
+  padding: 20px;
+  background-color: #ffffff;
+}
+
+.profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .profile-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 3px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.profile-header .profile-img {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 20px;
+.profile-header h2 {
+  color: #343a40;
 }
 
-.profile-info {
-  font-size: 16px;
+.profile-details {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-.profile-info p {
+.profile-details p {
   margin: 5px 0;
+  color: #6c757d;
 }
 
-.profile-info strong {
-  font-weight: bold;
+.address-container {
+  margin-top: 10px;
 }
 
-/* Địa chỉ */
-.address-container p {
-  margin-left: 20px;
-}
-
-/* Button cập nhật */
 .update-button {
-  background-color: #4CAF50;
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
   color: white;
-  padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  font-size: 16px;
   cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
 }
 
 .update-button:hover {
-  background-color: #45a049;
-  transition: 0.3s;
+  background-color: #0056b3;
+}
+
+.dashboard-footer {
+  background-color: #343a40;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  margin-top: auto;
 }

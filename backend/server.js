@@ -8,11 +8,15 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const { User } = require("./models/user");
+const xlsx = require("xlsx");
 //const multer = require('multer');
 const authRouter = require('./routes/userRoutes'); // Ensure this path is correct
-
+const Student = require('./models/student');
+//const Student = require('./models/student');
 const app = express();
-
+const studentController = require('./controllers/studentController');
+const { profile } = require("console");
 // Ensure 'uploads' directory exists
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
@@ -20,10 +24,11 @@ if (!fs.existsSync("uploads")) {
 // Increase the limit for incoming requests
 app.use(bodyParser.json({ limit: '50mb' })); // Adjust limit as needed
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({ origin: "http://localhost:3001", credentials: true }));
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads/profileImages", express.static("uploads"));
 const saveBase64Image = (base64Data, filePath) => {
   const base64String = base64Data.replace(/^data:image\/jpeg;base64,/, ''); // Loại bỏ phần tiền tố
   const buffer = Buffer.from(base64String, 'base64');
@@ -134,7 +139,7 @@ app.get('/api/user/profile', authenticateMiddleware, (req, res) => {
   try {
     const userId = req.user.id; // Get user id from decoded token
     const sql = "SELECT * FROM user WHERE id = ?";
-    
+
     db.query(sql, [userId], (err, result) => {
       if (err) {
         console.error('Error fetching user profile:', err);
@@ -168,7 +173,7 @@ app.put('/api/user/update', authenticateMiddleware, upload.single('profileImage'
   try {
     const { fullname, phone, province, district, commune, village, gender, dob, email } = req.body;
     const userId = req.user.id; // Get user ID from token
-    
+
     // Check if the user exists in the database
     const sqlCheck = "SELECT * FROM user WHERE id = ?";
     db.query(sqlCheck, [userId], (err, result) => {
@@ -211,21 +216,9 @@ app.put('/api/user/update', authenticateMiddleware, upload.single('profileImage'
         WHERE id = ?
       `;
 
-      // Log the update data
-      // console.log('Updating user with:', {
-      //   updatedFullname,
-      //   updatedPhone,
-      //   updatedProvince,
-      //   updatedDistrict,
-      //   updatedCommune,
-      //   updatedVillage,
-      //   updatedGender,
-      //   updatedDob,
-      //   updatedEmail,
-      //   updatedProfileImage,
-      // });
+
       console.log('Old image path:', user.profileImage);
-console.log('New image path:', updatedProfileImage);
+      console.log('New image path:', updatedProfileImage);
 
       // Execute the update SQL query
       db.query(sqlUpdate, [updatedFullname, updatedPhone, updatedProvince, updatedDistrict, updatedCommune, updatedVillage, updatedGender, updatedDob, updatedEmail, updatedProfileImage, userId], (err, result) => {
@@ -249,13 +242,299 @@ console.log('New image path:', updatedProfileImage);
     res.status(500).json({ message: 'Lỗi khi cập nhật thông tin', error });
   }
 });
+app.get('/api/students', async (req, res) => {
+  try {
+    const students = await Student.findAll();
+    res.status(200).json(students);
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách sinh viên:', error);
+    res.status(500).json({ error: 'Không thể lấy danh sách sinh viên.' });
+  }
+});
+app.post("/api/students/register", upload.fields([
+  { name: 'profileImage' },
+  { name: 'imageLeft' },
+  { name: 'imageRight' }
+]), async (req, res) => {
+  const { student_id, fullname, dob, school, major, email } = req.body;
+
+  // Kiểm tra tất cả các trường bắt buộc
+  if (!student_id || !fullname || !dob || !school || !major || !email) {
+    return res.status(400).json({ message: "Các trường bắt buộc không được để trống!" });
+  }
+
+  try {
+    // Kiểm tra xem học sinh đã tồn tại chưa
+    const studentExists = await Student.findOne({ where: { student_id } });
+    if (studentExists) {
+      return res.status(400).json({ message: "Mã học sinh đã tồn tại!" });
+    }
+
+    // Kiểm tra xem email đã tồn tại chưa
+    const emailExists = await Student.findOne({ where: { email } });
+    if (emailExists) {
+      return res.status(400).json({ message: "Email này đã được đăng ký!" });
+    }
+
+    // Xử lý ảnh nếu có
+    const profileImage = req.files['profileImage'] ? `uploads/${req.files['profileImage'][0].filename}` : null;
+    const imageLeft = req.files['imageLeft'] ? `uploads/${req.files['imageLeft'][0].filename}` : null;
+    const imageRight = req.files['imageRight'] ? `uploads/${req.files['imageRight'][0].filename}` : null;
+
+    // Prepare SQL insert statement
+    const sqlInsert = `
+      INSERT INTO students (student_id, fullname, dob, school, major, email, profileImage, imageLeft, imageRight) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    console.log("Form Data: ", {
+      student_id,
+      fullname,
+      dob,
+      school,
+      major,
+      email,
+      profileImage,
+      imageLeft,
+      imageRight
+    });
+
+    // Execute the SQL query
+    db.query(sqlInsert, [
+      student_id, fullname, dob, school, major, email, profileImage, imageLeft, imageRight
+    ], (err, result) => {
+      if (err) {
+        console.error("Error inserting student:", err);
+        return res.status(500).json({ message: "Lỗi khi đăng ký học sinh" });
+      }
+
+      res.status(201).json({ message: "Đăng ký học sinh thành công!" });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+});
+// Route lấy thông tin sinh viên theo student_id
+app.get('/api/students/profile/:student_id', (req, res) => {
+  const { student_id } = req.params; // Lấy student_id từ URL params
+
+  console.log("Received student_id:", student_id);  // Log để kiểm tra giá trị student_id
+
+  // Câu lệnh SQL để lấy thông tin sinh viên theo student_id
+  const sqlStudent = `
+    SELECT student_id, fullname, email, dob, school, major, profileImage
+    FROM students
+    WHERE student_id = ?
+  `;
+
+  // Thực hiện truy vấn SQL để lấy thông tin sinh viên
+  db.query(sqlStudent, [student_id], (err, studentResult) => {
+    if (err) {
+      console.error('Lỗi khi truy vấn cơ sở dữ liệu:', err);
+      return res.status(500).json({ message: 'Lỗi server' });
+    }
+
+    if (studentResult.length === 0) {
+      console.log('Không tìm thấy sinh viên với student_id:', student_id);
+      return res.status(404).json({ message: 'Không tìm thấy sinh viên với mã này.' });
+    }
+
+    const student = studentResult[0];  // Sinh viên đầu tiên trong kết quả
+
+    // Câu lệnh SQL để lấy thông tin điểm danh từ bảng Attendance
+    const sqlAttendance = `
+      SELECT date, status
+      FROM Attendance
+      WHERE student_id = ?
+    `;
+
+    // Thực hiện truy vấn SQL để lấy thông tin điểm danh
+    db.query(sqlAttendance, [student_id], (err, attendanceResult) => {
+      if (err) {
+        console.error('Lỗi khi truy vấn cơ sở dữ liệu:', err);
+        return res.status(500).json({ message: 'Lỗi server' });
+      }
+
+      // Tính số buổi có mặt và số buổi vắng mặt
+      const presentCount = attendanceResult.filter(record => record.status === 'có mặt').length;
+      const absentCount = attendanceResult.filter(record => record.status === 'vắng mặt').length;
+
+      // Trả về thông tin sinh viên và thông tin điểm danh
+      res.status(200).json({
+        student_id: student.student_id,
+        fullname: student.fullname,
+        dob: student.dob,
+        school: student.school,
+        major: student.major,
+        email: student.email,
+        profileImage: student.profileImage,
+        presentCount,
+        absentCount,
+        attendanceRecords: attendanceResult,
+      });
+    });
+  });
+});
+// Route để upload dữ liệu sinh viên từ file Excel
+app.post('/api/students/upload', async (req, res) => {
+  const studentsData = req.body.students; // Dữ liệu sinh viên từ frontend
+
+  if (!Array.isArray(studentsData) || studentsData.length === 0) {
+    return res.status(400).json({ message: 'Không có dữ liệu sinh viên' });
+  }
+
+  try {
+    // Thêm dữ liệu sinh viên vào cơ sở dữ liệu
+    for (let student of studentsData) {
+      await Student.create({
+        student_id: student.student_id,
+        fullname: student.fullname,
+        dob: student.dob,
+        school: student.school,
+        major: student.major,
+        profileImage: student.profileImage,
+        imageLeft: student.imageLeft,
+        imageRight: student.imageRight,
+        email: student.email
+      });
+    }
+    res.status(200).json({ message: 'Dữ liệu sinh viên đã được tải lên thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi thêm dữ liệu sinh viên:', error);
+    res.status(500).json({ message: 'Lỗi server, không thể thêm dữ liệu sinh viên' });
+  }
+});
+// Route để cập nhật thông tin sinh viên
+app.put('/api/students/update/:student_id', upload.fields([
+  { name: 'profileImage' },
+  { name: 'imageLeft' },
+  { name: 'imageRight' }
+]), async (req, res) => {
+  const { student_id } = req.params;
+  const { fullname, dob, school, major, email } = req.body;
+
+  try {
+    // Kiểm tra xem sinh viên có tồn tại không
+    const studentExists = await Student.findOne({ where: { student_id } });
+    if (!studentExists) {
+      return res.status(404).json({ message: "Sinh viên không tồn tại!" });
+    }
+
+    // Xử lý ảnh nếu có
+    const profileImage = req.files && req.files['profileImage'] ? `uploads/${req.files['profileImage'][0].filename}` : studentExists.profileImage;
+    const imageLeft = req.files && req.files['imageLeft'] ? `uploads/${req.files['imageLeft'][0].filename}` : studentExists.imageLeft;
+    const imageRight = req.files && req.files['imageRight'] ? `uploads/${req.files['imageRight'][0].filename}` : studentExists.imageRight;
+
+    // Cập nhật thông tin sinh viên
+    await Student.update({
+      fullname,
+      dob,
+      school,
+      major,
+      email,
+      profileImage,
+      imageLeft,
+      imageRight
+    }, { where: { student_id } });
+
+    res.status(200).json({ message: "Cập nhật thông tin sinh viên thành công!" });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật thông tin sinh viên:', error);
+    res.status(500).json({ message: "Lỗi server, không thể cập nhật thông tin sinh viên" });
+  }
+});
+// Route để tìm sinh viên theo mã số sinh viên
+app.get('/api/students/:student_id', studentController.getStudentById);
+
+// Route để xuất danh sách sinh viên ra file Excel
+app.get('/api/students/export', studentController.exportStudentsToExcel);
+app.post('/api/students/attendance', studentController.recordAttendance);
+app.get('/api/students/:student_id/attendance', studentController.getAttendanceRecords);
+app.post('/api/students/attendance/bulk', studentController.bulkAttendance);
+app.delete('/api/delete/students/:student_id', studentController.deleteStudent);
 
 
-app.use('/api/user', authRouter);
+//chụp ảnh khi phát hiện khuôn mặt
 
-// Use the userRoutes for authentication and authorization handling
-//app.use('/api/auth', authRouter);
-//app.use("/user", authenticateMiddleware, userRouter);
+// Đảm bảo thư mục uploads/captured tồn tại
+const capturedDir = path.join(__dirname, '../uploads/captured');
+const fsPromises = require('fs').promises;
+
+async function ensureDirectoryExists() {
+  try {
+    await fsPromises.mkdir(capturedDir, { recursive: true });
+  } catch (err) {
+    console.error('Error creating directory:', err);
+    throw err;
+  }
+}
+
+
+// Hàm để chuyển đổi ngày và giờ thành định dạng hh-mm-ss-dd-mm-yyyy
+function getFormattedDate() {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, '0');       // Đảm bảo ngày có 2 chữ số
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Đảm bảo tháng có 2 chữ số (tháng bắt đầu từ 0)
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');    // Đảm bảo giờ có 2 chữ số
+  const minutes = String(date.getMinutes()).padStart(2, '0'); // Đảm bảo phút có 2 chữ số
+  const seconds = String(date.getSeconds()).padStart(2, '0'); // Đảm bảo giây có 2 chữ số
+
+  return `${hours}-${minutes}-${seconds}-${day}-${month}-${year}`;  // Định dạng hh-mm-ss-dd-mm-yyyy
+}
+
+// API nhận chuỗi Base64 và lưu thành ảnh
+app.post('/api/capture', (req, res) => {
+  const { image } = req.body;
+
+  if (!image) {
+    return res.status(400).json({ error: 'Image là bắt buộc' });
+  }
+
+  // Tách phần dữ liệu Base64 và phần tiền tố data:image/png;base64,...
+  const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+
+  // Tạo tên file tự động từ ngày và giờ hiện tại theo định dạng hh-mm-ss-dd-mm-yyyy
+  const formattedDate = getFormattedDate();  // Lấy ngày và giờ hiện tại
+  const filePath = path.join(__dirname, 'uploads/captured', `${formattedDate}.png`);  // Tạo tên file theo ngày và giờ
+
+  // Tạo thư mục 'uploads' nếu chưa tồn tại
+  if (!fs.existsSync(path.join(__dirname, 'uploads/captured'))) {
+    fs.mkdirSync(path.join(__dirname, 'uploads/captured'));
+  }
+
+  // Lưu ảnh dưới dạng file
+  fs.writeFile(filePath, base64Data, 'base64', (err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Không thể lưu ảnh' });
+    }
+
+    res.status(200).json({ message: 'Ảnh đã được lưu thành công', path: filePath });
+  });
+});
+
+// Route để upload ảnh thẻ sinh viên
+app.post('/api/upload/student_card', (req, res) => {
+  const { image } = req.body;
+  const base64Data = image.replace(/^data:image\/jpeg;base64,/, '');
+  const formattedDate = new Date().toLocaleString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).replace(/[:/]/g, '-').replace(/, /g, '--');
+  const filePath = path.join(__dirname, 'uploads/student_card', `${formattedDate}.jpeg`);
+
+  fs.writeFile(filePath, base64Data, 'base64', (err) => {
+    if (err) {
+      console.error('Error saving image:', err);
+      return res.status(500).json({ message: 'Lỗi khi lưu ảnh' });
+    }
+    res.status(200).json({ message: 'Upload ảnh thành công!', filePath });
+  });
+});
 
 // Start Server
 const port = 3000;
