@@ -1,7 +1,10 @@
-// src/components/AttendanceRealtime.js
 import { useRef, useState, useEffect } from 'react';
 import * as faceapi from 'face-api.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom'; // Link for navigation
+
+const user = JSON.parse(localStorage.getItem('user'));  // Get user info from localStorage
+const avatarUrl = user?.avatar || '/path/to/default-avatar.jpg';  // Use default avatar if none exists
 
 function AttendanceRealtime() {
     const videoRef = useRef();
@@ -9,13 +12,20 @@ function AttendanceRealtime() {
     const [faceDetected, setFaceDetected] = useState(false);
     const [webcamActive, setWebcamActive] = useState(false);
     const [countdown, setCountdown] = useState(null);
+    const [isWaiting, setIsWaiting] = useState(false);
+    const [studentInfo, setStudentInfo] = useState(null); // State for student info
+    const [isFaceNotFound, setIsFaceNotFound] = useState(false); // State for face not found pop-up
     let detectionInterval = useRef(null);
     let countdownInterval = useRef(null);
 
     useEffect(() => {
         loadModels();
+        videoRef.current.addEventListener('loadeddata', () => {
+            console.log('Video loaded, starting face detection');
+            startFaceDetection();
+        });
         return () => {
-            clearResources(); // Cleanup khi component unmount
+            clearResources();
         };
     }, []);
 
@@ -67,6 +77,7 @@ function AttendanceRealtime() {
         }
         setCountdown(null);
         setFaceDetected(false);
+        setIsWaiting(false);
     };
 
     const startFaceDetection = () => {
@@ -85,20 +96,21 @@ function AttendanceRealtime() {
                 const resized = faceapi.resizeResults(detections, { width: 940, height: 650 });
                 faceapi.draw.drawDetections(canvasRef.current, resized);
 
-                if (detections.length > 0 && !faceDetected) {
+                if (detections.length > 0 && !faceDetected && !isWaiting) {
                     setFaceDetected(true);
-                    startCountdown(); // Bắt đầu đếm ngược
-                } else if (detections.length === 0) {
-                    resetCountdown(); // Dừng đếm ngược nếu không phát hiện khuôn mặt
+                    startCountdown();
+                } else if (detections.length === 0 && !isWaiting) {
+                    setFaceDetected(false);
+                    resetCountdown();
                 }
             }
-        }, 1000); // Kiểm tra khuôn mặt mỗi giây
+        }, 1000);
     };
 
     const startCountdown = () => {
-        if (countdownInterval.current || countdown !== null) return;
+        if (countdownInterval.current || countdown !== null || isWaiting) return;
 
-        let count = 2; // Đếm ngược 2 giây
+        let count = 3;
         setCountdown(count);
 
         countdownInterval.current = setInterval(() => {
@@ -109,7 +121,7 @@ function AttendanceRealtime() {
                 clearInterval(countdownInterval.current);
                 countdownInterval.current = null;
                 setCountdown(null);
-                captureAndSendImage(); // Chụp ảnh khi đếm ngược xong
+                captureAndSendImage();
             }
         }, 1000);
     };
@@ -130,19 +142,47 @@ function AttendanceRealtime() {
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/jpeg');
 
-        fetch('http://localhost:3000/api/capture', {
+        const base64Image = dataUrl.split(',')[1];
+
+        fetch('http://127.0.0.1:5000/verify', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ image: dataUrl }),
+            body: JSON.stringify({ image: `data:image/jpeg;base64,${base64Image}` }),
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log('Image saved:', data);
+                console.log('Server response:', data);
+
+                if (data.code === "0") {
+                    const studentId = data.mssv;
+
+                    return fetch(`http://localhost:3000/api/students/profile/${studentId}`)
+                        .then((response) => response.json())
+                        .then((studentData) => {
+                            const profileImageUrl = studentData.profileImage
+                                ? `http://localhost:3000/${studentData.profileImage}`
+                                : '/path/to/default-avatar.jpg';  
+
+                            setStudentInfo({
+                                studentId: studentData.student_id,
+                                fullname: studentData.fullname,
+                                dob: studentData.dob,
+                                email: studentData.email,
+                                school: studentData.school,
+                                major: studentData.major,
+                                profileImage: profileImageUrl,
+                            });
+                        });
+                } else {
+                    setIsFaceNotFound(true);
+                    setTimeout(() => setIsFaceNotFound(false), 1000); // Hide popup after 1 second
+                    throw new Error('Face not found in database');
+                }
             })
             .catch((error) => {
-                console.error('Error saving image:', error);
+                console.error('Error:', error);
             });
     };
 
@@ -165,11 +205,37 @@ function AttendanceRealtime() {
                         />
                     </div>
                 </div>
+
+                {/* Phần thông tin sinh viên sẽ chỉ hiển thị sau khi điểm danh */}
+                {studentInfo && (
+                    <div className="col-md-4 mt-3">
+                        <div className="student-info-container border p-3 rounded shadow">
+                            <div className="student-info text-left">
+                                <h4>{studentInfo.fullname}</h4>
+                                <p><strong>MSSV:</strong> {studentInfo.studentId}</p>
+                                <p><strong>Ngày sinh:</strong> {new Date(studentInfo.dob).toLocaleDateString('en-GB')}</p>
+                                <img
+                                    src={studentInfo.profileImage}
+                                    alt="Student Avatar"
+                                    className="img-fluid rounded-circle"
+                                    style={{ width: '200px', height: '200px' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Pop-up thông báo không tìm thấy khuôn mặt */}
+            {isFaceNotFound && (
+                <div className="alert alert-danger text-center mt-3">
+                    <strong>Không tìm thấy khuôn mặt trong cơ sở dữ liệu.</strong>
+                </div>
+            )}
+
             <div className="mt-3">
                 <button
-                    className={`btn btn-lg ${webcamActive ? 'btn-danger' : 'btn-success'
-                        }`}
+                    className={`btn btn-lg ${webcamActive ? 'btn-danger' : 'btn-success'}`}
                     onClick={webcamActive ? stopVideo : startVideo}
                 >
                     {webcamActive ? 'Tắt Webcam' : 'Bật Webcam'}

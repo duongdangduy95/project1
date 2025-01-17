@@ -166,6 +166,7 @@ function AddStudentPage() {
         </form>
 
         {message && <p>{message}</p>}
+        
       </div>
     </DashboardLayout>
   );

@@ -16,13 +16,21 @@ const UpdateStudent = () => {
   });
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    // Lấy thông tin sinh viên từ API
+  // Hàm lấy dữ liệu sinh viên từ API
+  const fetchStudentData = () => {
     axios.get(`http://localhost:3000/api/students/${studentId}`)
       .then((response) => {
-        setStudent(response.data);
+        const studentData = response.data;
+        if (studentData.dob) {
+          studentData.dob = new Date(studentData.dob).toISOString().split('T')[0]; // Định dạng "yyyy-MM-dd"
+        }
+        setStudent(studentData);
       })
       .catch((error) => console.error('Lỗi khi lấy thông tin sinh viên:', error));
+  };
+
+  useEffect(() => {
+    fetchStudentData();
   }, [studentId]);
 
   const handleInputChange = (e) => {
@@ -51,7 +59,11 @@ const UpdateStudent = () => {
     axios.put(`http://localhost:3000/api/students/update/${studentId}`, formData)
       .then((response) => {
         setMessage('Cập nhật thông tin thành công!');
-        navigate(`/students/${studentId}`);
+        setTimeout(() => {
+          // Lấy lại thông tin sinh viên sau khi cập nhật thành công
+          fetchStudentData();
+          navigate(`/students/profile/${studentId}`);
+        }, 1000); // Thêm thời gian chờ ngắn trước khi điều hướng
       })
       .catch((error) => {
         console.error('Lỗi khi cập nhật thông tin sinh viên:', error);

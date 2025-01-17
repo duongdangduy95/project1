@@ -1,7 +1,7 @@
 const XLSX = require('xlsx');
 const XLSXPopulate = require('xlsx-populate');
-const  Student  = require('../models/student'); // Import model Student
-const  Attendance  = require('../models/Attendance'); // Import model Attendance
+const Student = require('../models/student'); // Import model Student
+const Attendance = require('../models/Attendance'); // Import model Attendance
 const fs = require('fs');
 const path = require('path');
 const db = require('../db');
@@ -39,26 +39,26 @@ exports.uploadStudents = async (req, res) => {
   }
 };
 exports.registerStudent = async (req, res) => {
-    try {
-        const { student_id, fullname, dob, school, major } = req.body;
-    
-        const newStudent = await Student.create({
-        student_id,
-        fullname,
-        dob,
-        school,
-        major,
-        profileImage: req.files.profileImage ? req.files.profileImage[0].filename : null,
-        imageLeft: req.files.imageLeft ? req.files.imageLeft[0].filename : null,
-        imageRight: req.files.imageRight ? req.files.imageRight[0].filename : null,
-        });
-    
-        res.status(201).json(newStudent);
-    } catch (error) {
-        console.error('Lỗi khi thêm sinh viên:', error);
-        res.status(500).json({ message: 'Không thể thêm sinh viên. Vui lòng thử lại.' });
-    }
-    }
+  try {
+    const { student_id, fullname, dob, school, major } = req.body;
+
+    const newStudent = await Student.create({
+      student_id,
+      fullname,
+      dob,
+      school,
+      major,
+      profileImage: req.files.profileImage ? req.files.profileImage[0].filename : null,
+      imageLeft: req.files.imageLeft ? req.files.imageLeft[0].filename : null,
+      imageRight: req.files.imageRight ? req.files.imageRight[0].filename : null,
+    });
+
+    res.status(201).json(newStudent);
+  } catch (error) {
+    console.error('Lỗi khi thêm sinh viên:', error);
+    res.status(500).json({ message: 'Không thể thêm sinh viên. Vui lòng thử lại.' });
+  }
+}
 // Controller: Lấy thông tin chi tiết của sinh viên theo student_id
 exports.getStudentById = async (req, res) => {
   const { student_id } = req.params;  // Lấy student_id từ URL
@@ -268,8 +268,12 @@ exports.getAttendanceRecords = async (req, res) => {
 // Controller: Xử lý điểm danh hàng loạt
 exports.bulkAttendance = async (req, res) => {
   try {
-    const attendanceData = req.body;
-
+    let attendanceData = req.body;
+    // Kiểm tra xem attendanceData có phải là một mảng không
+    if (!Array.isArray(attendanceData)) {
+      // Nếu không phải là mảng, chuyển thành mảng
+      attendanceData = [attendanceData];
+    }
     // Lưu thông tin điểm danh vào cơ sở dữ liệu
     await Promise.all(attendanceData.map(async (record) => {
       const { student_id, status } = record;
@@ -297,5 +301,23 @@ exports.bulkAttendance = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi điểm danh hàng loạt:', error);
     res.status(500).json({ message: 'Không thể điểm danh. Vui lòng thử lại.' });
+  }
+};
+
+ // Controller: Xóa sinh viên và toàn bộ thông tin liên quan
+exports.deleteStudent = async (req, res) => {
+  const { student_id } = req.params;
+
+  try {
+    // Xóa thông tin điểm danh của sinh viên
+    await Attendance.destroy({ where: { student_id } });
+
+    // Xóa thông tin sinh viên
+    await Student.destroy({ where: { student_id } });
+
+    res.status(200).json({ message: 'Xóa sinh viên thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa sinh viên:', error);
+    res.status(500).json({ message: 'Không thể xóa sinh viên. Vui lòng thử lại.' });
   }
 };

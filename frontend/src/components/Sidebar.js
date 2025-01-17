@@ -48,9 +48,8 @@ function Sidebar() {
       
       <ul>
         <li><Link to="/profile">Thông tin cá nhân</Link></li>
-        <li><Link to="/class-list">Danh sách lớp</Link></li>
+        <li><Link to="/student-list">Danh sách sinh viên</Link></li>
         <li><Link to="/attendance">Điểm danh</Link></li>
-        <li><Link to="/login">Đăng Xuất</Link></li>
       </ul>
     </div>
   );

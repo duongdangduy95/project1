@@ -17,6 +17,9 @@ const AttendancePage = () => {
           </Link>
         </div>
       </div>
+      <footer className="real-attenndance-footer">
+        <p>&copy; 2024 - Ứng Dụng Điểm Danh. All Rights Reserved.</p>
+      </footer>
     </DashboardLayout>
   );
 };

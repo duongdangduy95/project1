@@ -1,64 +1,65 @@
 /* sidebar.css */
 .sidebar {
-    width: 250px; /* Width of the Sidebar */
-    height: 100vh; /* Full screen height */
-    position: fixed; /* Fixes the sidebar to the left */
-    left: 0;
-    background: linear-gradient(135deg, #2f9c79, #ff758c); /* Color gradient */
-    color: white; /* Text color */
-    display: flex;
-    flex-direction: column; /* Aligns children (links) vertically */
-    align-items: center;
-    padding: 20px 10px;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* Sidebar shadow */
-    z-index: 1000; /* Makes sure it's above other content */
-  }
-  
-  .sidebar .avatar {
-    width: 159px;
-    height: 159px;
-    max-width: 160px;
-    max-height: 160px;
-    border-radius: 50%; /* Circular image */
-    border: 3px solid white; /* White border around avatar */
-    margin-bottom: 15px; /* Space between avatar and username */
-  }
-  
-  .sidebar .username {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 20px; /* Space between username and links */
-    text-align: center;
-  }
-  
-  .sidebar ul {
-    list-style: none; /* Removes bullets from the list */
-    padding: 0; /* Removes default padding */
-    width: 100%; /* Makes the list take up the full width of the sidebar */
-    display: flex; /* Flexbox for vertical alignment */
-    flex-direction: column; /* Ensures the links are stacked vertically */
-    align-items: flex-start; /* Aligns the links to the left */
-  }
-  
-  .sidebar ul li {
-    width: 100%; /* Full width for each list item */
-    margin-bottom: 10px; /* Space between each list item */
-  }
-  
-  .sidebar ul li a {
-    display: block; /* Makes the link take the full width */
-    text-decoration: none; /* Removes the default underline */
-    padding: 10px 15px; /* Adds padding to the link */
-    color: rgb(28, 24, 27); /* Text color */
-    font-size: 16px; /* Font size */
-    border-radius: 8px; /* Rounded corners */
-    text-align: center;
-    background: rgba(31, 9, 224, 0.2); /* Semi-transparent background */
-    transition: background 0.3s, transform 0.3s; /* Animation for background and scale */
-  }
-  
-  .sidebar ul li a:hover {
-    background: rgba(255, 255, 255, 0.5); /* Hover effect */
-    transform: scale(1.05); /* Slight zoom effect on hover */
-  }
-  
+  width: 250px; /* Width of the Sidebar */
+  height: 100vh; /* Full screen height */
+  position: fixed; /* Fixes the sidebar to the left */
+  top: 0; /* Aligns the sidebar to the top */
+  left: 0; /* Aligns the sidebar to the left */
+  background: linear-gradient(135deg, #2f9c79, #ff758c); /* Color gradient */
+  color: white; /* Text color */
+  display: flex;
+  flex-direction: column; /* Aligns children (links) vertically */
+  align-items: center;
+  padding: 20px 10px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* Sidebar shadow */
+  z-index: 1000; /* Makes sure it's above other content */
+}
+
+.sidebar .avatar {
+  width: 159px;
+  height: 159px;
+  max-width: 160px;
+  max-height: 160px;
+  border-radius: 50%; /* Circular image */
+  border: 3px solid white; /* White border around avatar */
+  margin-bottom: 15px; /* Space between avatar and username */
+}
+
+.sidebar .username {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px; /* Space between username and links */
+  text-align: center;
+  color: black
+}
+
+.sidebar ul {
+  list-style: none; /* Removes bullets from the list */
+  padding: 0; /* Removes default padding */
+  width: 100%; /* Makes the list take up the full width of the sidebar */
+  display: flex; /* Flexbox for vertical alignment */
+  flex-direction: column; /* Ensures the links are stacked vertically */
+  align-items: flex-start; /* Aligns the links to the left */
+}
+
+.sidebar ul li {
+  width: 100%; /* Full width for each list item */
+  margin-bottom: 10px; /* Space between each list item */
+}
+
+.sidebar ul li a {
+  display: block; /* Makes the link take the full width */
+  text-decoration: none; /* Removes the default underline */
+  padding: 10px 15px; /* Adds padding to the link */
+  color: rgb(28, 24, 27); /* Text color */
+  font-size: 16px; /* Font size */
+  border-radius: 8px; /* Rounded corners */
+  text-align: center;
+  background: rgba(31, 9, 224, 0.2); /* Semi-transparent background */
+  transition: background 0.3s, transform 0.3s; /* Animation for background and scale */
+}
+
+.sidebar ul li a:hover {
+  background: rgba(255, 255, 255, 0.5); /* Hover effect */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}

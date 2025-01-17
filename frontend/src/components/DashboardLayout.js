@@ -6,7 +6,7 @@ function DashboardLayout({ children }) {
   const user = JSON.parse(localStorage.getItem('user'));
   const avatarUrl = user?.profileImage
     ? `http://localhost:3000/${user.profileImage}`
-    : 'https://via.placeholder.com/100';
+    : 'https://via.com/100';
 
   return (
     <div className="dashboard-layout">
@@ -34,9 +34,9 @@ function DashboardLayout({ children }) {
       </div>
 
       {/* Footer */}
-      <footer className="dashboard-footer">
+      {/* <footer className="dashboard-footer">
         <p>&copy; 2024 Hệ Thống Điểm Danh. All Rights Reserved.</p>
-      </footer>
+      </footer> */}
     </div>
   );
 }
